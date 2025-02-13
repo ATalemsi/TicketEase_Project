@@ -4,14 +4,15 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideClientHydration } from '@angular/platform-browser';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
-import { MetaReducer, provideStore } from '@ngrx/store';
+import { provideStore } from '@ngrx/store';
 import { provideEffects } from '@ngrx/effects';
 import { provideHttpClient, withInterceptors, withFetch } from "@angular/common/http";
 import { authInterceptor } from "./core/http/http-interceptor.service";
 import { AuthEffects } from "./features/auth/store/auth.effects";
 import { authReducer } from "./features/auth/store/auth.reducer";
-import { localStorageSync } from "ngrx-store-localstorage";
 import { provideStoreDevtools } from "@ngrx/store-devtools";
+import {ticketReducer} from "./features/tickets/store/ticket.reducer";
+import {TicketEffects} from "./features/tickets/store/ticket.effects";
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -19,8 +20,8 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])), // Add withFetch() here
     provideClientHydration(),
     provideAnimationsAsync(),
-    provideStore({ auth: authReducer }),
-    provideEffects([AuthEffects]),
+    provideStore({ auth: authReducer , ticket: ticketReducer }),
+    provideEffects([AuthEffects , TicketEffects]),
     provideStoreDevtools({
       maxAge: 25,
       logOnly: !isDevMode(),
