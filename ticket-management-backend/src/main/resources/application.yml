@@ -1,3 +1,5 @@
 spring:
   application:
        name: ticket-management-backend
+  profiles:
+    active: dev

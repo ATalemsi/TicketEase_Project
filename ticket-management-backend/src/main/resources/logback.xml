@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Root logger -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+
+    <!-- Console appender configuration -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} - %-5level [%thread] - %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File appender configuration (optional) -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/springboot.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} - %-5level [%thread] - %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Set up logging for specific packages (optional) -->
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="org.hibernate" level="ERROR"/>
+
+    <!-- Use the file appender for logging at DEBUG level or higher -->
+    <logger name="com.ticket.management" level="DEBUG">
+        <appender-ref ref="FILE"/>
+    </logger>
+</configuration>

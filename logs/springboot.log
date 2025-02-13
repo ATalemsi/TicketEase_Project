@@ -1,0 +1,14 @@
+2025-01-20 10:25:07 - INFO  [restartedMain] - c.t.m.t.TicketManagementBackendApplication - Starting TicketManagementBackendApplication using Java 17.0.10 with PID 7576 (C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend\target\classes started by moham in C:\Users\moham\IdeaProjects\ticket-management)
+2025-01-20 10:25:07 - DEBUG [restartedMain] - c.t.m.t.TicketManagementBackendApplication - Running with Spring Boot v3.4.1, Spring v6.2.1
+2025-01-20 10:25:07 - INFO  [restartedMain] - c.t.m.t.TicketManagementBackendApplication - The following 1 profile is active: "dev"
+2025-01-20 10:52:17 - INFO  [restartedMain] - c.t.m.t.TicketManagementBackendApplication - Starting TicketManagementBackendApplication using Java 17.0.10 with PID 444 (C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend\target\classes started by moham in C:\Users\moham\IdeaProjects\ticket-management)
+2025-01-20 10:52:17 - DEBUG [restartedMain] - c.t.m.t.TicketManagementBackendApplication - Running with Spring Boot v3.4.1, Spring v6.2.1
+2025-01-20 10:52:17 - INFO  [restartedMain] - c.t.m.t.TicketManagementBackendApplication - The following 1 profile is active: "dev"
+2025-01-20 10:54:40 - INFO  [restartedMain] - c.t.m.t.TicketManagementBackendApplication - Starting TicketManagementBackendApplication using Java 17.0.10 with PID 27808 (C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend\target\classes started by moham in C:\Users\moham\IdeaProjects\ticket-management)
+2025-01-20 10:54:40 - DEBUG [restartedMain] - c.t.m.t.TicketManagementBackendApplication - Running with Spring Boot v3.4.1, Spring v6.2.1
+2025-01-20 10:54:40 - INFO  [restartedMain] - c.t.m.t.TicketManagementBackendApplication - The following 1 profile is active: "dev"
+2025-01-20 10:55:23 - INFO  [restartedMain] - c.t.m.t.TicketManagementBackendApplication - Starting TicketManagementBackendApplication using Java 17.0.10 with PID 2028 (C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend\target\classes started by moham in C:\Users\moham\IdeaProjects\ticket-management)
+2025-01-20 10:55:23 - DEBUG [restartedMain] - c.t.m.t.TicketManagementBackendApplication - Running with Spring Boot v3.4.1, Spring v6.2.1
+2025-01-20 10:55:23 - INFO  [restartedMain] - c.t.m.t.TicketManagementBackendApplication - The following 1 profile is active: "dev"
+2025-01-20 10:55:27 - DEBUG [restartedMain] - c.t.m.t.s.JwtAuthenticationFilter - Filter 'jwtAuthenticationFilter' configured for use
+2025-01-20 10:55:30 - INFO  [restartedMain] - c.t.m.t.TicketManagementBackendApplication - Started TicketManagementBackendApplication in 7.46 seconds (process running for 8.403)
