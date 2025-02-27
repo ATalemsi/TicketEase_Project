@@ -19,7 +19,7 @@ import {SidebarComponent} from "../../../shared/components/sidebar/sidebar.compo
 import {AuthState} from "../../auth/store/auth.reducer";
 import {selectUserId} from "../../auth/store/auth.selectors";
 import {WebsocketService} from "../../../core/service/websocket/websocket.service";
-import {FilterByStatusPipe} from "../../../shared/pipes/filter-status.pipe";
+
 
 
 @Component({
@@ -36,7 +36,7 @@ import {FilterByStatusPipe} from "../../../shared/pipes/filter-status.pipe";
     LucideAngularModule,
     SidebarComponent,
     TitleCasePipe,
-    FilterByStatusPipe
+
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
