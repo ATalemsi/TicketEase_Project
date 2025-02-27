@@ -57,3 +57,16 @@ export const selectAuthorities = createSelector(
   selectAuthState,
   (state: AuthState) => state.role
 );
+export const selectUserId = createSelector(
+  selectAuthState,
+  (state: AuthState) => {
+    if (!state.token) return null;
+    try {
+      const decodedToken: any = jwtDecode(state.token);
+      return decodedToken.sub || decodedToken.userId || null; // Use 'sub' or 'userId' based on your token structure
+    } catch (error) {
+      console.error('Error decoding token:', error);
+      return null;
+    }
+  }
+);

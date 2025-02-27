@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -35,7 +34,7 @@ public class UserServiceImpl  implements UserService {
         return userRepository.findAll().stream()
                 .filter(user -> "AGENT".equals(user.getRole().getName()))
                 .map(userMapper::toResponseDto)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     @Transactional(readOnly = true)

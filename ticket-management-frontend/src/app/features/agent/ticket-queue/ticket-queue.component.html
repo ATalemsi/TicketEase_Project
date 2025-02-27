@@ -1,1 +1,123 @@
-<p>ticket-queue works!</p>
+<div class="flex min-h-screen bg-slate-100">
+  <!-- Sidebar Component -->
+  <app-sidebar [userRole$]="userRole$"></app-sidebar>
+
+  <!-- Main Content -->
+  <div class="flex-1 ml-64 p-6">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-slate-800">Ticket Queue</h1>
+      <p class="text-slate-600">Manage and process incoming tickets</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white rounded-lg shadow-sm p-4 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Status</label>
+          <select
+            [(ngModel)]="filters.status"
+            (change)="applyFilters()"
+            class="w-full rounded-lg border-slate-300 focus:border-purple-500 focus:ring-purple-500"
+          >
+            <option value="">All Status</option>
+            <option value="NEW">New</option>
+            <option value="OPEN">Open</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="RESOLVED">Resolved</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Priority</label>
+          <select
+            [(ngModel)]="filters.priority"
+            (change)="applyFilters()"
+            class="w-full rounded-lg border-slate-300 focus:border-purple-500 focus:ring-purple-500"
+          >
+            <option value="">All Priorities</option>
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-slate-700 mb-1">Search</label>
+          <input
+            type="text"
+            [(ngModel)]="filters.searchQuery"
+            (input)="applyFilters()"
+            placeholder="Search tickets..."
+            class="w-full rounded-lg border-slate-300 focus:border-purple-500 focus:ring-purple-500"
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="loading$ | async" class="flex justify-center items-center py-8">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error$ | async as error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      {{ error }}
+    </div>
+
+    <!-- Tickets List -->
+    <div class="space-y-4">
+      <div *ngFor="let ticket of tickets$ | async"
+           class="bg-white rounded-lg shadow-sm p-4 hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start mb-2">
+          <div>
+            <h3 class="text-lg font-semibold text-slate-800">{{ ticket.title }}</h3>
+            <p class="text-sm text-slate-600">Ticket #{{ ticket.id }}</p>
+          </div>
+          <span [ngClass]="{
+                'bg-purple-100 text-purple-700': ticket.status === 'NEW',
+                'bg-yellow-100 text-yellow-700': ticket.status === 'OPEN',
+                'bg-blue-100 text-blue-700': ticket.status === 'IN_PROGRESS',
+                'bg-green-100 text-green-700': ticket.status === 'RESOLVED'
+              }" class="px-3 py-1 rounded-full text-sm font-medium">
+                {{ ticket.status }}
+              </span>
+        </div>
+        <p class="text-slate-600 mb-4">{{ ticket.description }}</p>
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-slate-500">Created: {{ ticket.createdAt | date:'medium' }}</span>
+          <button
+            (click)="assignTicket(ticket.id)"
+            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Assign to Me
+          </button>
+          <a
+            [routerLink]="['/agent/ticket-response', ticket.id]"
+            class="px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
+          >
+            View Details
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- No Tickets Message -->
+    <div *ngIf="(tickets$ | async)?.length === 0 && !(loading$ | async)" class="text-center py-8 bg-white rounded-lg shadow-sm">
+      <div class="mb-4">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-12 h-12 mx-auto text-slate-400"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+          />
+        </svg>
+      </div>
+      <h3 class="text-lg font-medium text-slate-900 mb-1">No tickets found</h3>
+      <p class="text-slate-500">No tickets match your current filters.</p>
+    </div>
+  </div>
+</div>

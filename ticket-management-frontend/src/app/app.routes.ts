@@ -30,7 +30,7 @@ export const routes: Routes = [
   },
   {
     path: 'client/ticket-list',
-    loadComponent: () => import('./features/client/ticket-list/ticket-list.component')
+    loadComponent: () => import('./features/tickets/components/ticket-list/ticket-list.component')
       .then(m => m.TicketListComponent),
     title: 'Client Tickets',
     canActivate: [AuthGuard],
@@ -38,9 +38,25 @@ export const routes: Routes = [
   },
   {
     path: 'client/ticket-details/:id',
-    loadComponent: () => import('./features/client/ticket-details/ticket-details.component')
+    loadComponent: () => import('./features/tickets/components/ticket-details/ticket-details.component')
       .then(m => m.TicketDetailsComponent),
     title: 'Ticket Details',
+    canActivate: [AuthGuard],
+    data: { requiredRole: 'CLIENT' }
+  },
+  {
+    path: 'client/create-ticket',
+    loadComponent: () => import('./features/tickets/components/ticket-form/ticket-form.component')
+      .then(m => m.TicketFormComponent),
+    title: 'Create Tickets',
+    canActivate: [AuthGuard],
+    data: { requiredRole: 'CLIENT' }
+  },
+  {
+    path: 'client/edit-ticket/:id',
+    loadComponent: () => import('./features/tickets/components/ticket-form/ticket-form.component')
+      .then(m => m.TicketFormComponent),
+    title: 'Create Tickets',
     canActivate: [AuthGuard],
     data: { requiredRole: 'CLIENT' }
   },

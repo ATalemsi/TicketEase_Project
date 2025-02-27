@@ -2,16 +2,23 @@ package com.ticket.management.ticket_management_backend.service.impl;
 
 import com.ticket.management.ticket_management_backend.dto.request.TicketCreateRequest;
 import com.ticket.management.ticket_management_backend.dto.response.TicketResponse;
+import com.ticket.management.ticket_management_backend.dto.update.TicketStatusUpdateRequest;
 import com.ticket.management.ticket_management_backend.dto.update.TicketUpdateRequest;
 import com.ticket.management.ticket_management_backend.exception.ResourceNotFoundException;
 import com.ticket.management.ticket_management_backend.mapper.TicketMapper;
+import com.ticket.management.ticket_management_backend.model.Comment;
 import com.ticket.management.ticket_management_backend.model.Ticket;
 import com.ticket.management.ticket_management_backend.model.User;
+import com.ticket.management.ticket_management_backend.model.enums.Priority;
+import com.ticket.management.ticket_management_backend.model.enums.Status;
 import com.ticket.management.ticket_management_backend.repository.TicketRepository;
 import com.ticket.management.ticket_management_backend.repository.UserRepository;
 import com.ticket.management.ticket_management_backend.service.NotificationService;
 import com.ticket.management.ticket_management_backend.service.TicketService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,22 +27,42 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Service
-@RequiredArgsConstructor
+
 public class TicketServiceImpl implements TicketService {
 
-    private TicketRepository ticketRepository;
-    private TicketMapper ticketMapper;
+    private static final Logger log = LoggerFactory.getLogger(TicketServiceImpl.class);
+    private final TicketRepository ticketRepository;
+    private final TicketMapper ticketMapper;
     private final NotificationService notificationService;
     private final UserRepository userRepository;
 
+    @Autowired // Constructor injection is preferred
+    public TicketServiceImpl(
+            TicketRepository ticketRepository,
+            NotificationService notificationService,
+            TicketMapper ticketMapper,
+            UserRepository userRepository
+    ) {
+        this.ticketRepository = ticketRepository;
+        this.notificationService = notificationService;
+        this.ticketMapper = ticketMapper;
+        this.userRepository=userRepository;
+    }
     @Override
     @Transactional
     public TicketResponse createTicket(TicketCreateRequest request, User creator) {
         Ticket ticket = ticketMapper.toEntity(request);
+
         ticket.setCreator(creator);
 
         Ticket savedTicket = ticketRepository.save(ticket);
-        notificationService.notifyNewTicket(savedTicket);
+        notificationService.notifyNewTicket(savedTicket, creator.getId());
+
+
+
+        if (savedTicket.getAssignedAgent() != null) {
+            notificationService.notifyNewTicket(savedTicket, savedTicket.getAssignedAgent().getId());
+        }
 
         return ticketMapper.toResponse(savedTicket);
     }
@@ -74,5 +101,96 @@ public class TicketServiceImpl implements TicketService {
     public Page<TicketResponse> getTicketsByCreator(Long creatorId, Pageable pageable) {
         return ticketRepository.findByCreatorId(creatorId, pageable)
                 .map(ticketMapper::toResponse);
+    }
+
+    @Override
+    @Transactional
+    public TicketResponse updateTicketStatus(Long id, TicketStatusUpdateRequest request) {
+        try {
+            log.info("Updating status for ticket ID: {}", id);
+            Ticket ticket = ticketRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+            log.info("Current status: {}, New status: {}", ticket.getStatus(), request.getStatus());
+            ticket.setStatus(request.getStatus());
+
+
+             if(request.getStatus().equals("RESOLVED")){
+                 ticket.setResolvedAt(java.time.LocalDateTime.now());
+             }
+
+            Ticket updatedTicket = ticketRepository.save(ticket);
+            log.info("Ticket status updated successfully: {}", updatedTicket);
+
+
+             notificationService.notifyTicketUpdate(updatedTicket);
+
+            return ticketMapper.toResponse(updatedTicket);
+        } catch (Exception e) {
+            log.error("Error updating ticket status: {}", e.getMessage(), e);
+            throw new RuntimeException("An unexpected error occurred", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public TicketResponse addComment(Long id, String comment, Long agentId) {
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+        User agent = userRepository.findById(agentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Agent not found"));
+
+        Comment newComment = Comment.builder()
+                .content("AGENT (" + agent.getEmail() + "): " + comment)
+                .author(agent)
+                .ticket(ticket)
+                .build();
+        ticket.getComments().add(newComment);
+        Ticket updatedTicket = ticketRepository.save(ticket);
+
+        // Notify the customer about the new comment
+        notificationService.notifyTicketUpdate(updatedTicket);
+
+        return ticketMapper.toResponse(updatedTicket);
+    }
+
+    @Override
+    public Page<TicketResponse> searchTicketsByAgent(Long agentId, String status, String priority, String searchQuery, Pageable pageable) {
+        try {
+            log.info("Searching tickets for agent ID: {}", agentId);
+            log.info("Filters - Status: {}, Priority: {}, Search Query: {}", status, priority, searchQuery);
+
+            // Convert status from String to Status enum
+            Status statusEnum = null;
+            if (status != null && !status.isEmpty()) {
+                try {
+                    statusEnum = Status.valueOf(status);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid status value: {}", status);
+                    throw new IllegalArgumentException("Invalid status value: " + status);
+                }
+            }
+
+            // Convert priority from String to Priority enum
+            Priority priorityEnum = null;
+            if (priority != null && !priority.isEmpty()) {
+                try {
+                    priorityEnum = Priority.valueOf(priority);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid priority value: {}", priority);
+                    throw new IllegalArgumentException("Invalid priority value: " + priority);
+                }
+            }
+
+            Page<Ticket> tickets = ticketRepository.findByAssignedAgentIdAndStatusAndPriorityAndTitleContainingIgnoreCase(
+                    agentId, status, statusEnum, priority, priorityEnum, searchQuery, pageable);
+
+            log.info("Found {} tickets", tickets.getTotalElements());
+            return tickets.map(ticketMapper::toResponse);
+        } catch (Exception e) {
+            log.error("Error searching tickets: {}", e.getMessage(), e);
+            throw new RuntimeException("An unexpected error occurred", e);
+        }
     }
 }

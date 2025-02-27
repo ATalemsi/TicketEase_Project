@@ -4,6 +4,20 @@ import {TicketResponse} from "../../../shared/models/ticket-response.model";
 import {TicketCreateRequest} from "../../../shared/models/ticket-create-request.model";
 import {TicketUpdateRequest} from "../../../shared/models/ticket-update-request.model";
 
+export interface TicketFilters {
+  status?: string;
+  search?: string;
+}
+
+export interface LoadMyTicketsPayload {
+  userId: string;
+  pageable: {
+    page: number;
+    size: number;
+    sort?: string;
+  };
+  filters?: TicketFilters;
+}
 export const loadTickets = createAction(
   '[Ticket] Load Tickets',
   props<{ pageable: { page: number; size: number; sort?: string } }>()
@@ -21,8 +35,8 @@ export const loadTicketsFailure = createAction(
 
 // Load My Tickets
 export const loadMyTickets = createAction(
-  '[Ticket] Load My Tickets',
-  props<{ userId: number; pageable: { page: number; size: number; sort?: string } }>()
+  '[Tickets] Load My Tickets',
+  props<LoadMyTicketsPayload>()
 );
 
 export const loadMyTicketsSuccess = createAction(

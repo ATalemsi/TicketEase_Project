@@ -10,14 +10,16 @@ import {
   loadTicketsFailure,
   loadTicketsSuccess, updateTicket, updateTicketFailure, updateTicketSuccess
 } from "./ticket.actions";
-import {catchError, mergeMap, of} from "rxjs";
+import {catchError, mergeMap, of, tap} from "rxjs";
 import {map} from "rxjs/operators";
+import {Router} from "@angular/router";
 
 @Injectable()
 export class TicketEffects {
   constructor(
     private readonly actions$: Actions,
-    private readonly ticketService: TicketService
+    private readonly ticketService: TicketService,
+    private readonly router: Router
   ) {}
 
   // Load Tickets
@@ -70,6 +72,15 @@ export class TicketEffects {
         )
       )
     )
+  );
+
+  // Navigation effect after successful ticket creation
+  createTicketSuccess$ = createEffect(() =>
+      this.actions$.pipe(
+        ofType(createTicketSuccess),
+        tap(() => this.router.navigate(['/client/dashboard']))
+      ),
+    { dispatch: false }
   );
 
   // Update Ticket

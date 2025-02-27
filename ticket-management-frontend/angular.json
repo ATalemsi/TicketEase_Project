@@ -15,6 +15,10 @@
           "options": {
             "outputPath": "dist/ticket-management-frontend",
             "index": "src/index.html",
+            "allowedCommonJsDependencies": [
+              "@stomp/stompjs",
+              "sockjs-client"
+            ],
             "browser": "src/main.ts",
             "polyfills": [
               "zone.js"
