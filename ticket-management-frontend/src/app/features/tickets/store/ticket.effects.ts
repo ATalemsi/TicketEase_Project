@@ -17,7 +17,7 @@ import {
   searchTicketsByClient, searchTicketsByClientFailure,
   searchTicketsByClientSuccess,
   updateTicket,
-  updateTicketFailure,
+  updateTicketFailure, updateTicketStatus, updateTicketStatusFailure, updateTicketStatusSuccess,
   updateTicketSuccess
 } from "./ticket.actions";
 import {catchError, mergeMap, of, switchMap, tap} from "rxjs";
@@ -85,6 +85,19 @@ export class TicketEffects {
         this.ticketService.getAssignedTickets(userId, pageable).pipe(
           map((page) => loadAssignedTicketsSuccess({ page })),
           catchError((error) => of(loadAssignedTicketsFailure({ error: error.message })))
+        )
+      )
+    )
+  );
+
+  // Update Ticket Status
+  updateTicketStatus$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(updateTicketStatus),
+      mergeMap(({ticketId, status}) =>
+        this.ticketService.updateTicketStatus(ticketId, status).pipe(
+          map((ticket) => updateTicketStatusSuccess({ticket})),
+          catchError((error) => of(updateTicketStatusFailure({error: error.message})))
         )
       )
     )

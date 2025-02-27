@@ -109,6 +109,22 @@ export const searchTicketsByClientSuccess = createAction(
 );
 
 export const searchTicketsByClientFailure = createAction(
-  '[Agent] Search Tickets Failure',
+  '[Ticket] Search Tickets Failure',
+  props<{ error: string }>()
+);
+
+// Update Ticket Status
+export const updateTicketStatus = createAction(
+  '[Ticket] Update Ticket Status',
+  props<{ ticketId: number; status: string }>()
+);
+
+export const updateTicketStatusSuccess = createAction(
+  '[Ticket] Update Ticket Status Success',
+  props<{ ticket: TicketResponse }>()
+);
+
+export const updateTicketStatusFailure = createAction(
+  '[Ticket] Update Ticket Status Failure',
   props<{ error: string }>()
 );

@@ -61,4 +61,9 @@ export class TicketService {
     return this.http.get<Page<TicketResponse>>(`${this.apiUrl}/user/tickets/search`, { params });
   }
 
+  updateTicketStatus(ticketId: number, status: string): Observable<TicketResponse> {
+    const url = `${this.apiUrl}/user/tickets/${ticketId}/status`;
+    return this.http.put<TicketResponse>(url, {status});
+  }
+
 }

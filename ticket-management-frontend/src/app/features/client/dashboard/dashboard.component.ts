@@ -2,7 +2,12 @@ import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TicketResponse} from '../../../shared/models/ticket-response.model';
 import {EMPTY, map, Observable, Subject, switchMap, takeUntil, tap} from "rxjs";
 import {Store} from "@ngrx/store";
-import {loadMyTickets, LoadMyTicketsPayload} from "../../tickets/store/ticket.actions";
+import {
+  loadMyTickets,
+  LoadMyTicketsPayload,
+  searchTicketsByClient,
+  updateTicketStatus
+} from "../../tickets/store/ticket.actions";
 import {selectLoading, selectMyTickets} from "../../tickets/store/ticket.selectors";
 import {Page} from "../../../shared/models/page.model";
 import {filter, take} from "rxjs/operators";
@@ -14,6 +19,8 @@ import {SidebarComponent} from "../../../shared/components/sidebar/sidebar.compo
 import {AuthState} from "../../auth/store/auth.reducer";
 import {selectUserId} from "../../auth/store/auth.selectors";
 import {WebsocketService} from "../../../core/service/websocket/websocket.service";
+import {FilterByStatusPipe} from "../../../shared/pipes/filter-status.pipe";
+
 
 @Component({
   selector: 'app-dashboard',
@@ -28,7 +35,8 @@ import {WebsocketService} from "../../../core/service/websocket/websocket.servic
     RouterLink,
     LucideAngularModule,
     SidebarComponent,
-    TitleCasePipe
+    TitleCasePipe,
+    FilterByStatusPipe
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -42,8 +50,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
   unreadCount$: Observable<number>;
   showNotifications = false;
 
+  // Filtered tickets observables
+  newTickets$: Observable<TicketResponse[]>;
+  inProgressTickets$: Observable<TicketResponse[]>;
+  resolvedTickets$: Observable<TicketResponse[]>;
 
-  // Notification message
   notificationMessage: string | null = null;
 
   // Stats counters
@@ -52,7 +63,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
   inProgressTickets: number = 0;
   resolvedTickets: number = 0;
   newTickets: number = 0;
-
 
   currentPage = 0;
   pageSize = 10;
@@ -64,10 +74,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
   // Ticket Details Modal
   selectedTicket: TicketResponse | null = null;
 
-  // Destroy subject for cleanup
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly store: Store<{ auth: AuthState }>, private readonly webSocketService: WebsocketService) {
+  constructor(
+    private readonly store: Store<{ auth: AuthState }>,
+    private readonly webSocketService: WebsocketService
+  ) {
     this.tickets$ = this.store.select(selectMyTickets);
     this.loading$ = this.store.select(selectLoading);
     this.userRole$ = this.store.select((state) => state.auth.role);
@@ -76,10 +88,20 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.unreadCount$ = this.notifications$.pipe(
       map((notifications) => notifications.filter((n) => !n.read).length)
     );
+
+    // Create filtered observables
+    this.newTickets$ = this.tickets$.pipe(
+      map(page => page?.content.filter(ticket => ticket.status === 'NEW') ?? [])
+    );
+    this.inProgressTickets$ = this.tickets$.pipe(
+      map(page => page?.content.filter(ticket => ticket.status === 'IN_PROGRESS') ?? [])
+    );
+    this.resolvedTickets$ = this.tickets$.pipe(
+      map(page => page?.content.filter(ticket => ticket.status === 'RESOLVED') ?? [])
+    );
   }
 
   ngOnInit(): void {
-    // Load tickets when userId is available
     this.userId$.pipe(
       takeUntil(this.destroy$)
     ).subscribe((userId) => {
@@ -88,7 +110,6 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Update stats when tickets change
     this.tickets$.pipe(
       takeUntil(this.destroy$)
     ).subscribe((tickets) => {
@@ -96,13 +117,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.updateStats(tickets.content);
       }
     });
+
     this.userId$.pipe(takeUntil(this.destroy$)).subscribe((userId) => {
       if (userId) {
-        this.webSocketService.connect(userId); // Connect with the authenticated user ID
+        this.webSocketService.connect(userId);
       }
     });
 
-    // Handle notifications with better logging and error handling
     this.notifications$.pipe(
       takeUntil(this.destroy$)
     ).subscribe((notifications) => {
@@ -111,6 +132,16 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.notificationMessage = notifications[0].message;
       }
     });
+  }
+
+  applyFilters(): void {
+    console.log('Applying filters:', { status: this.selectedStatus, searchQuery: this.searchQuery, page: this.currentPage, size: this.pageSize });
+    this.store.dispatch(searchTicketsByClient({
+      status: this.selectedStatus,
+      searchQuery: this.searchQuery,
+      page: this.currentPage,
+      size: this.pageSize
+    }));
   }
 
   ngOnDestroy(): void {
@@ -157,16 +188,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
     }
   }
 
-  applyFilters(): void {
-    this.userId$.pipe(take(1)).subscribe(userId => {
-      if (userId) {
-        this.loadTickets(userId, 0, {
-          status: this.selectedStatus || undefined,
-          search: this.searchQuery || undefined
-        });
-      }
-    });
-  }
+
 
   viewTicketDetails(ticket: TicketResponse): void {
     this.selectedTicket = ticket;
@@ -236,5 +258,12 @@ export class DashboardComponent implements OnInit, OnDestroy {
 
   clearNotifications(): void {
     this.webSocketService.clearNotifications();
+  }
+
+  resolveTicket(ticketId: number): void {
+    if (this.selectedTicket && this.selectedTicket.status === 'IN_PROGRESS') {
+      this.store.dispatch(updateTicketStatus({ ticketId, status: 'RESOLVED' }));
+      this.closeModal();
+    }
   }
 }

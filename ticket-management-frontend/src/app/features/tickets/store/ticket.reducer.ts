@@ -14,7 +14,7 @@ import {
   loadTicketsFailure,
   loadTicketsSuccess, searchTicketsByClient, searchTicketsByClientFailure, searchTicketsByClientSuccess,
   updateTicket,
-  updateTicketFailure,
+  updateTicketFailure, updateTicketStatus, updateTicketStatusFailure, updateTicketStatusSuccess,
   updateTicketSuccess,
 } from './ticket.actions';
 
@@ -116,5 +116,40 @@ export const ticketReducer = createReducer(
     ...state,
     error,
     loading: false,
-  }))
+  })),
+  // Update Ticket Status
+  on(updateTicketStatus, (state) => ({
+    ...state,
+    loading: true,
+    error: null,
+  })),
+  on(updateTicketStatusSuccess, (state, { ticket }) => {
+    if (!state.tickets) {
+      // If tickets is null, return state unchanged or handle as needed
+      return {
+        ...state,
+        loading: false,
+      };
+    }
+
+    // Map over the content array to update the specific ticket
+    const updatedContent = state.tickets.content.map((t) =>
+      t.id === ticket.id ? ticket : t
+    );
+
+    // Return a new Page<TicketResponse> object with updated content
+    return {
+      ...state,
+      tickets: {
+        ...state.tickets,           // Spread existing Page properties (totalPages, etc.)
+        content: updatedContent     // Replace content with updated array
+      },
+      loading: false,
+    };
+  }),
+  on(updateTicketStatusFailure, (state, { error }) => ({
+    ...state,
+    error,
+    loading: false,
+  })),
 );

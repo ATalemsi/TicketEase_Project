@@ -27,7 +27,7 @@ export class AuthGuard implements CanActivate {
           // Prevent authenticated users from accessing login/register
           if (route.routeConfig?.path === 'login' || route.routeConfig?.path === 'register') {
             this.redirectBasedOnRole(authState.role!);
-            return false;
+            return false; // Deny access to login/register for authenticated users
           }
 
           // Check if the user has the required role for the route

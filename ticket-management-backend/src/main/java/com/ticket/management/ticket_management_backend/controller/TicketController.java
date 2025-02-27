@@ -3,7 +3,9 @@ package com.ticket.management.ticket_management_backend.controller;
 
 import com.ticket.management.ticket_management_backend.dto.request.TicketCreateRequest;
 import com.ticket.management.ticket_management_backend.dto.response.TicketResponse;
+import com.ticket.management.ticket_management_backend.dto.update.TicketStatusUpdateRequest;
 import com.ticket.management.ticket_management_backend.dto.update.TicketUpdateRequest;
+import com.ticket.management.ticket_management_backend.exception.ResourceNotFoundException;
 import com.ticket.management.ticket_management_backend.model.User;
 import com.ticket.management.ticket_management_backend.security.UserPrincipal;
 import com.ticket.management.ticket_management_backend.service.TicketService;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -68,5 +71,18 @@ public class TicketController {
             Pageable pageable) {
         return ResponseEntity.ok(ticketService.searchTicketsByClient(
                 userPrincipal.getId(), status, searchQuery, pageable));
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updateTicketStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody TicketStatusUpdateRequest request) {
+        try {
+            return ResponseEntity.ok(ticketService.updateTicketStatus(id, request));
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
     }
 }
