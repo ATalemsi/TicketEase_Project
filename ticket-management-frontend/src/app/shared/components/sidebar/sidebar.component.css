@@ -1,0 +1,19 @@
+/* Custom scrollbar for both components */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-400 rounded hover:bg-slate-500;
+}
+
+
+/* Card hover effects */
+.hover-card {
+  @apply transition-all hover:shadow-md hover:-translate-y-0.5;
+}

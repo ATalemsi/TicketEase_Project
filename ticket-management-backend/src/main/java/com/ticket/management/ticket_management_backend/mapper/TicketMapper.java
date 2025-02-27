@@ -6,7 +6,7 @@ import com.ticket.management.ticket_management_backend.dto.update.TicketUpdateRe
 import com.ticket.management.ticket_management_backend.model.Ticket;
 import org.mapstruct.*;
 
-@Mapper(componentModel = "spring" , uses = {UserMapper.class , CommentMapper.class})
+@Mapper(componentModel = "spring" , uses = {UserMapper.class , CommentMapper.class} , unmappedTargetPolicy = ReportingPolicy.IGNORE )
 public interface TicketMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "creator", ignore = true)

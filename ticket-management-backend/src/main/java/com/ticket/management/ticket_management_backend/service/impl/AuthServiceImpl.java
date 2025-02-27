@@ -55,13 +55,17 @@ public class AuthServiceImpl implements AuthService {
         if (Boolean.TRUE.equals(userRepository.existsByEmail(registerRequest.getEmail()))) {
             throw new IllegalArgumentException("Email already exists");
         }
-        Role clientRole = roleRepository.findByName("CLIENT")
+
+        // Fetch the role dynamically based on the request
+        Role role = roleRepository.findByName(registerRequest.getRole())
                 .orElseThrow(() -> new RuntimeException("Role does not exist"));
+
         User user = User.builder().build();
         user.setEmail(registerRequest.getEmail());
         user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
         user.setFullName(registerRequest.getFullName());
-        user.setRole(clientRole);
+        user.setRole(role); // Assign the correct role
+
         User savedUser = userRepository.save(user);
 
         Authentication authentication = authenticationManager.authenticate(
@@ -81,4 +85,5 @@ public class AuthServiceImpl implements AuthService {
                 .role(savedUser.getRole().getName())
                 .build();
     }
+
 }

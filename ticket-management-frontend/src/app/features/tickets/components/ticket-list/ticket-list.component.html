@@ -1,1 +1,295 @@
-<p>ticket-list works!</p>
+<div class="flex min-h-screen bg-slate-100">
+  <!-- Sidebar Component -->
+  <app-sidebar [userRole$]="userRole$"></app-sidebar>
+
+  <!-- Main Content Area -->
+  <div class="flex-1 ml-64">
+    <div class="p-6">
+      <!-- Notification Toast -->
+      <div
+        *ngIf="notificationMessage"
+        class="fixed top-4 right-4 p-4 bg-green-500 text-white rounded-lg shadow-lg flex items-center justify-between z-50"
+      >
+        <span>{{ notificationMessage }}</span>
+        <button (click)="notificationMessage = null" class="ml-4">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-5 h-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 18L18 6M6 6l12 12"
+            />
+          </svg>
+        </button>
+      </div>
+
+      <!-- Header -->
+      <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold text-slate-800">All Tickets</h1>
+        <div class="flex items-center gap-4">
+          <button
+            routerLink="/client/create-ticket"
+            class="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="w-5 h-5 mr-2"
+            >
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create New Ticket
+          </button>
+        </div>
+      </div>
+
+      <!-- Search and Filter -->
+      <div class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 mb-8">
+        <div class="flex flex-col md:flex-row gap-4">
+          <div class="flex-1 relative">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search tickets..."
+              [(ngModel)]="searchQuery"
+              class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+            />
+          </div>
+          <select
+            [(ngModel)]="selectedStatus"
+            class="px-4 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+          >
+            <option value="">All Statuses</option>
+            <option value="NEW">New</option>
+            <option value="OPEN">Open</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="RESOLVED">Resolved</option>
+          </select>
+          <button
+            (click)="applyFilters()"
+            class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
+          >
+            Apply Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading Indicator -->
+      <div *ngIf="loading$ | async" class="flex justify-center items-center py-8">
+        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+
+      <!-- Ticket List -->
+      <div *ngIf="(tickets$ | async) as tickets" class="space-y-6">
+        <div *ngIf="tickets.content && tickets.content.length > 0; else noTickets">
+          <!-- Individual Ticket Cards -->
+          <div class="space-y-4">
+            <div
+              *ngFor="let ticket of tickets.content"
+              class="bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow p-6 border border-slate-100"
+            >
+              <div class="flex justify-between items-center mb-3">
+                <span class="font-bold text-slate-800">Ticket #{{ ticket.id }}</span>
+                <span
+                  [ngClass]="getStatusClass(ticket.status)"
+                  class="px-3 py-1 rounded-full text-sm font-medium inline-flex items-center"
+                >
+                  <span
+                    class="w-2 h-2 rounded-full mr-1.5"
+                    [ngClass]="{
+                      'bg-purple-500': ticket.status === 'NEW',
+                      'bg-yellow-500': ticket.status === 'OPEN',
+                      'bg-blue-500': ticket.status === 'IN_PROGRESS',
+                      'bg-green-500': ticket.status === 'RESOLVED'
+                    }"
+                  ></span>
+                  {{ ticket.status }}
+                </span>
+              </div>
+
+              <h3 class="text-lg font-semibold text-slate-800 mb-2">{{ ticket.title }}</h3>
+              <p class="text-slate-600 mb-4 line-clamp-2">{{ ticket.description }}</p>
+
+              <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                <span class="text-sm text-slate-500">Created: {{ ticket.createdAt | date:'MMM dd, yyyy' }}</span>
+                <div class="flex gap-2">
+                  <button
+                    (click)="viewTicketDetails(ticket)"
+                    class="flex items-center px-4 py-2 text-purple-600 hover:bg-purple-50 rounded-lg transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="w-5 h-5 mr-2"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                    View Details
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <div *ngIf="tickets.totalElements! > 0" class="flex justify-center items-center mt-8">
+            <nav class="flex items-center space-x-2" aria-label="Pagination">
+              <button
+                (click)="prevPage()"
+                [disabled]="currentPage === 0"
+                class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">Previous</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+
+              <div class="hidden md:flex space-x-2">
+                <ng-container *ngFor="let i of [].constructor(tickets.totalPages! > 0 ? tickets.totalPages : 0); let pageIndex = index">
+                  <button
+                    *ngIf="pageIndex >= currentPage - 2 && pageIndex <= currentPage + 2"
+                    (click)="goToPage(pageIndex)"
+                    [class.bg-purple-100]="currentPage === pageIndex"
+                    [class.text-purple-700]="currentPage === pageIndex"
+                    [class.border-purple-300]="currentPage === pageIndex"
+                    class="px-4 py-2 rounded-md text-sm font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50"
+                  >
+                    {{ pageIndex + 1 }}
+                  </button>
+                </ng-container>
+              </div>
+
+              <div class="md:hidden">
+                <span class="px-4 py-2 text-sm font-medium text-slate-700">
+                  Page {{ currentPage + 1 }} of {{ tickets.totalPages }}
+                </span>
+              </div>
+
+              <button
+                (click)="nextPage()"
+                [disabled]="currentPage >= tickets.totalPages! - 1"
+                class="px-3 py-2 rounded-md text-sm font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="sr-only">Next</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </nav>
+          </div>
+        </div>
+
+        <!-- No Tickets Template -->
+        <ng-template #noTickets>
+          <div class="text-center py-8 bg-white rounded-lg shadow-sm">
+            <div class="mb-4">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="w-12 h-12 mx-auto text-slate-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"
+                />
+              </svg>
+            </div>
+            <h3 class="text-lg font-medium text-slate-900 mb-1">No tickets found</h3>
+            <p class="text-slate-500">Try adjusting your search or filter criteria</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ticket Details Modal -->
+<div *ngIf="selectedTicket" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+  <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-bold text-slate-800">Ticket #{{ selectedTicket.id }}</h2>
+      <button (click)="closeModal()" class="text-slate-500 hover:text-slate-700 transition-colors">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    <div class="mb-6">
+      <div class="flex justify-between items-center mb-3">
+        <h3 class="text-lg font-semibold text-slate-800">{{ selectedTicket.title }}</h3>
+        <span
+          [ngClass]="getStatusClass(selectedTicket.status)"
+          class="px-3 py-1 rounded-full text-sm font-medium"
+        >
+          {{ selectedTicket.status }}
+        </span>
+      </div>
+      <p class="text-slate-600 mb-4">{{ selectedTicket.description }}</p>
+      <div class="flex justify-between text-sm text-slate-500">
+        <span>Created: {{ selectedTicket.createdAt | date:'MMM dd, yyyy' }}</span>
+        <span>Priority: {{ selectedTicket.priority }}</span>
+      </div>
+    </div>
+
+    <!-- Responses section with proper null checking -->
+    <ng-container *ngIf="selectedTicket.responses && selectedTicket.responses.length > 0">
+      <h4 class="text-lg font-semibold text-slate-800 mb-4">Responses</h4>
+      <div
+        *ngFor="let response of selectedTicket.responses"
+        class="bg-slate-50 p-4 rounded-lg mb-2 hover:bg-slate-100 transition-colors"
+      >
+        <p class="text-slate-800"><strong>Agent:</strong> {{ response.agentName }}</p>
+        <p class="text-slate-600">{{ response.message }}</p>
+        <span class="text-sm text-slate-500">{{ response.date | date: 'short' }}</span>
+      </div>
+    </ng-container>
+
+    <!-- No responses message -->
+    <div *ngIf="!selectedTicket.responses?.length" class="text-center py-4">
+      <p class="text-slate-500">No responses yet</p>
+    </div>
+  </div>
+</div>

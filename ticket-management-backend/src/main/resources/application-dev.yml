@@ -1,4 +1,6 @@
 spring:
+  websocket:
+    enabled: true
   datasource:
     url: jdbc:postgresql://db:5432/ticket_management  # PostgreSQL connection URL
     username: postgres  # PostgreSQL username
@@ -16,6 +18,7 @@ spring:
   jackson:
     serialization:
       indent_output: true  # Format JSON output for better readability
+
 
   mvc:
     cors:

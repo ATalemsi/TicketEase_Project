@@ -42,7 +42,8 @@ public class Ticket {
     @ManyToOne
     private User assignedAgent;
 
-    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default // Ensure the initializer is used by Lombok's @Builder
     private List<Comment> comments = new ArrayList<>();
 
     private LocalDateTime createdAt;

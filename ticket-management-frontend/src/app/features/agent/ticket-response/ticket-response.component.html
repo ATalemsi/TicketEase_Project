@@ -1,1 +1,99 @@
-<p>ticket-response works!</p>
+<div class="flex min-h-screen bg-slate-100">
+  <!-- Sidebar Component -->
+  <app-sidebar [userRole$]="userRole$"></app-sidebar>
+
+  <!-- Main Content -->
+  <div class="flex-1 ml-64 p-6">
+    <div class="mb-6">
+      <h1 class="text-2xl font-bold text-slate-800">Ticket Response</h1>
+      <p class="text-slate-600">Respond to and manage the ticket</p>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="loading$ | async" class="flex justify-center items-center py-8">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="error$ | async as error" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      {{ error }}
+    </div>
+
+    <div *ngIf="ticket$ | async as ticket" class="bg-white rounded-lg shadow-sm p-6">
+      <!-- Ticket Header -->
+      <div class="mb-6">
+        <div class="flex justify-between items-start">
+          <div>
+            <h2 class="text-xl font-semibold text-slate-800">{{ ticket.title }}</h2>
+            <p class="text-sm text-slate-500">Ticket #{{ ticket.id }}</p>
+          </div>
+          <span [ngClass]="{
+                'bg-purple-100 text-purple-700': ticket.status === 'NEW',
+                'bg-yellow-100 text-yellow-700': ticket.status === 'OPEN',
+                'bg-blue-100 text-blue-700': ticket.status === 'IN_PROGRESS',
+                'bg-green-100 text-green-700': ticket.status === 'RESOLVED'
+              }" class="px-3 py-1 rounded-full text-sm font-medium">
+                {{ ticket.status }}
+              </span>
+        </div>
+      </div>
+
+      <!-- Ticket Details -->
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold text-slate-800 mb-2">Description</h3>
+        <p class="text-slate-600">{{ ticket.description }}</p>
+      </div>
+
+      <!-- Status Update -->
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold text-slate-800 mb-2">Update Status</h3>
+        <div class="flex gap-2">
+          <button
+            *ngFor="let status of ['OPEN', 'IN_PROGRESS', 'RESOLVED']"
+            (click)="updateStatus(ticket.id, status)"
+            [ngClass]="{
+                  'bg-purple-600 text-white': ticket.status === status,
+                  'bg-white text-slate-700': ticket.status !== status
+                }"
+            class="px-4 py-2 rounded-lg border border-slate-200 hover:bg-purple-50 transition-colors"
+          >
+            {{ status }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Add Comment -->
+      <div class="mb-6">
+        <h3 class="text-lg font-semibold text-slate-800 mb-2">Add Comment</h3>
+        <div class="flex gap-2">
+          <input
+            type="text"
+            [(ngModel)]="newComment"
+            placeholder="Type your comment here..."
+            class="flex-1 rounded-lg border-slate-300 focus:border-purple-500 focus:ring-purple-500"
+          >
+          <button
+            (click)="addComment(ticket.id)"
+            class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            Add Comment
+          </button>
+        </div>
+      </div>
+
+      <!-- Comments History -->
+      <div>
+        <h3 class="text-lg font-semibold text-slate-800 mb-2">Comments History</h3>
+        <div class="space-y-4">
+          <div *ngFor="let comment of ticket.responses" class="bg-slate-50 rounded-lg p-4">
+            <div class="flex justify-between items-start mb-2">
+              <span class="font-medium text-slate-700">{{ comment.agentName }}</span>
+              <span class="text-sm text-slate-500">{{ comment.date | date:'medium' }}</span>
+            </div>
+            <p class="text-slate-600">{{ comment.message }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

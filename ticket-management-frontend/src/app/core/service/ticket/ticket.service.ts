@@ -12,12 +12,12 @@ import {Pageable} from "../../../shared/models/pageable.model";
   providedIn: 'root'
 })
 export class TicketService {
-  private readonly apiUrl = `${environment.apiUrl}/api/tickets`;
+  private readonly apiUrl = `${environment.apiUrl}/api`;
 
   constructor(private readonly http: HttpClient) {}
 
   createTicket(request: TicketCreateRequest): Observable<TicketResponse> {
-    return this.http.post<TicketResponse>(this.apiUrl, request);
+    return this.http.post<TicketResponse>(`${this.apiUrl}/user/tickets`, request);
   }
 
   updateTicket(id: number, request: TicketUpdateRequest): Observable<TicketResponse> {
@@ -30,16 +30,16 @@ export class TicketService {
       .set('size', pageable.size.toString())
       .set('sort', pageable.sort ?? '');
 
-    return this.http.get<Page<TicketResponse>>(this.apiUrl, { params });
+    return this.http.get<Page<TicketResponse>>(`${this.apiUrl}/user/tickets`, { params });
   }
 
-  getMyTickets(userId: number, pageable: Pageable): Observable<Page<TicketResponse>> {
+  getMyTickets(userId: string, pageable: Pageable): Observable<Page<TicketResponse>> {
     const params = new HttpParams()
       .set('page', pageable.page.toString())
       .set('size', pageable.size.toString())
       .set('sort', pageable.sort ?? '');
 
-    return this.http.get<Page<TicketResponse>>(`${this.apiUrl}/my-tickets`, { params });
+    return this.http.get<Page<TicketResponse>>(`${this.apiUrl}/user/tickets/my-tickets`, { params });
   }
 
   // Get tickets assigned to the current user (agent)
