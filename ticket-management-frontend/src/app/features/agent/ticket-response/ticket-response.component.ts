@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {map, Observable} from 'rxjs';
 import { TicketResponse } from '../../../shared/models/ticket-response.model';
 import { ActivatedRoute } from '@angular/router';
@@ -26,7 +26,7 @@ import {FormsModule} from "@angular/forms";
   templateUrl: './ticket-response.component.html',
   styleUrl: './ticket-response.component.css'
 })
-export class TicketResponseComponent {
+export class TicketResponseComponent implements OnInit{
   ticket$: Observable<TicketResponse | undefined> | undefined;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
@@ -72,4 +72,5 @@ export class TicketResponseComponent {
       this.newComment = '';
     }
   }
+
 }

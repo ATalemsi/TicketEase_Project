@@ -85,12 +85,12 @@
       <div>
         <h3 class="text-lg font-semibold text-slate-800 mb-2">Comments History</h3>
         <div class="space-y-4">
-          <div *ngFor="let comment of ticket.responses" class="bg-slate-50 rounded-lg p-4">
+          <div *ngFor="let comment of ticket.comments" class="bg-slate-50 rounded-lg p-4">
             <div class="flex justify-between items-start mb-2">
-              <span class="font-medium text-slate-700">{{ comment.agentName }}</span>
-              <span class="text-sm text-slate-500">{{ comment.date | date:'medium' }}</span>
+              <span class="font-medium text-slate-700">{{ comment.author.email }}</span>
+              <span class="text-sm text-slate-500">{{ comment.creationDate | date:'medium' }}</span>
             </div>
-            <p class="text-slate-600">{{ comment.message }}</p>
+            <p class="text-slate-600">{{ comment.content }}</p>
           </div>
         </div>
       </div>

@@ -193,4 +193,37 @@ public class TicketServiceImpl implements TicketService {
             throw new RuntimeException("An unexpected error occurred", e);
         }
     }
+
+    @Override
+    public TicketResponse getTicketById(Long id) {
+        log.info("Fetching ticket with ID: {}", id);
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with ID: " + id));
+        return ticketMapper.toResponse(ticket);
+    }
+
+    @Override
+    public Page<TicketResponse> searchTicketsByClient(Long clientID, String status, String searchQuery, Pageable pageable) {
+        try {
+            log.info("Searching tickets for agent ID: {}", clientID);
+            log.info("Filters - Status: {}, Search Query: {}", status, searchQuery);
+            Status statusEnum = null;
+            if (status != null && !status.isEmpty()) {
+                try {
+                    statusEnum = Status.valueOf(status);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid status value: {}", status);
+                    throw new IllegalArgumentException("Invalid status value: " + status);
+                }
+            }
+            Page<Ticket> tickets = ticketRepository.findByAssignedAgentIdAndStatusTitleContainingIgnoreCase(
+                    clientID, statusEnum, searchQuery, pageable
+            );
+            log.info("Found {} tickets", tickets.getTotalElements());
+            return tickets.map(ticketMapper::toResponse);
+        } catch (Exception e) {
+            log.error("Error searching tickets: {}", e.getMessage(), e);
+            throw new RuntimeException("An unexpected error occurred", e);
+        }
+    }
 }

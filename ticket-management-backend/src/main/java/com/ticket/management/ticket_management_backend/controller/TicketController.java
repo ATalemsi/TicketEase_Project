@@ -59,4 +59,14 @@ public class TicketController {
             Pageable pageable) {
         return ResponseEntity.ok(ticketService.getTicketsByCreator(userPrincipal.getId(), pageable));
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<Page<TicketResponse>> searchTicketsByClient(
+            @AuthenticationPrincipal UserPrincipal userPrincipal,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String searchQuery,
+            Pageable pageable) {
+        return ResponseEntity.ok(ticketService.searchTicketsByClient(
+                userPrincipal.getId(), status, searchQuery, pageable));
+    }
 }

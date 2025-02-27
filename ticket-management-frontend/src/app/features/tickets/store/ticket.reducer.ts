@@ -12,7 +12,7 @@ import {
   loadMyTicketsSuccess,
   loadTickets,
   loadTicketsFailure,
-  loadTicketsSuccess,
+  loadTicketsSuccess, searchTicketsByClient, searchTicketsByClientFailure, searchTicketsByClientSuccess,
   updateTicket,
   updateTicketFailure,
   updateTicketSuccess,
@@ -77,6 +77,23 @@ export const ticketReducer = createReducer(
     };
   }),
   on(createTicketFailure, (state, { error }) => ({
+    ...state,
+    error,
+    loading: false,
+  })),
+
+  // Search Tickets
+  on(searchTicketsByClient, (state) => ({
+    ...state,
+    loading: true,
+    error: null,
+  })),
+  on(searchTicketsByClientSuccess, (state, { tickets }) => ({
+    ...state,
+    myTickets: tickets, // Change from tickets to myTickets
+    loading: false,
+  })),
+  on(searchTicketsByClientFailure, (state, { error }) => ({
     ...state,
     error,
     loading: false,

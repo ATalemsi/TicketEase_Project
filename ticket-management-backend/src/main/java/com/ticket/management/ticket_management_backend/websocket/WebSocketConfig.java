@@ -33,8 +33,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*") // Allow all origins
-                .setAllowedOrigins("*") // Allow all origins
+                .setAllowedOriginPatterns("*") // Use only this for flexible origin matching
                 .withSockJS(); // Enable SockJS fallback
     }
 
@@ -45,10 +44,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
                 if (StompCommand.CONNECT.equals(accessor.getCommand())) {
-                    // Get user-id from headers sent by frontend
                     String userId = accessor.getFirstNativeHeader("user-id");
                     if (userId != null) {
-                        // Set the user ID as the session's Principal
                         accessor.setUser(new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList()));
                         log.info("Set user ID for WebSocket session: {}", userId);
                     } else {

@@ -2,17 +2,29 @@ import { Injectable } from "@angular/core";
 import {Actions, createEffect, ofType} from "@ngrx/effects";
 import {TicketService} from "../../../core/service/ticket/ticket.service";
 import {
-  createTicket, createTicketFailure, createTicketSuccess,
-  loadAssignedTickets, loadAssignedTicketsFailure, loadAssignedTicketsSuccess,
-  loadMyTickets, loadMyTicketsFailure,
+  createTicket,
+  createTicketFailure,
+  createTicketSuccess,
+  loadAssignedTickets,
+  loadAssignedTicketsFailure,
+  loadAssignedTicketsSuccess,
+  loadMyTickets,
+  loadMyTicketsFailure,
   loadMyTicketsSuccess,
   loadTickets,
   loadTicketsFailure,
-  loadTicketsSuccess, updateTicket, updateTicketFailure, updateTicketSuccess
+  loadTicketsSuccess,
+  searchTicketsByClient, searchTicketsByClientFailure,
+  searchTicketsByClientSuccess,
+  updateTicket,
+  updateTicketFailure,
+  updateTicketSuccess
 } from "./ticket.actions";
-import {catchError, mergeMap, of, tap} from "rxjs";
+import {catchError, mergeMap, of, switchMap, tap} from "rxjs";
 import {map} from "rxjs/operators";
 import {Router} from "@angular/router";
+import {TicketResponse} from "../../../shared/models/ticket-response.model";
+import {Page} from "../../../shared/models/page.model";
 
 @Injectable()
 export class TicketEffects {
@@ -43,6 +55,23 @@ export class TicketEffects {
         this.ticketService.getMyTickets(userId, pageable).pipe(
           map((page) => loadMyTicketsSuccess({ page })),
           catchError((error) => of(loadMyTicketsFailure({ error: error.message })))
+        )
+      )
+    )
+  );
+
+  searchTicketsByClient$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(searchTicketsByClient),
+      tap(action => console.log('Effect triggered with action:', action)),
+      switchMap(({ searchQuery, status, page, size }) =>
+        this.ticketService.searchTicketsByClient(searchQuery, status, page, size).pipe(
+          tap(tickets => console.log('Service returned:', tickets)),
+          map((tickets: Page<TicketResponse>) => searchTicketsByClientSuccess({ tickets })),
+          catchError((error) => {
+            console.error('Search error:', error);
+            return of(searchTicketsByClientFailure({ error: error.message }));
+          })
         )
       )
     )

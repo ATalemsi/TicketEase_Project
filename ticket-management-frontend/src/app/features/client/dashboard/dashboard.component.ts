@@ -1,13 +1,13 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {TicketResponse} from '../../../shared/models/ticket-response.model';
-import {EMPTY, Observable, Subject, switchMap, takeUntil, tap} from "rxjs";
+import {EMPTY, map, Observable, Subject, switchMap, takeUntil, tap} from "rxjs";
 import {Store} from "@ngrx/store";
 import {loadMyTickets, LoadMyTicketsPayload} from "../../tickets/store/ticket.actions";
 import {selectLoading, selectMyTickets} from "../../tickets/store/ticket.selectors";
 import {Page} from "../../../shared/models/page.model";
 import {filter, take} from "rxjs/operators";
 import {FormsModule} from "@angular/forms";
-import {AsyncPipe, DatePipe, NgClass, NgForOf, NgIf} from "@angular/common";
+import {AsyncPipe, DatePipe, NgClass, NgForOf, NgIf, TitleCasePipe} from "@angular/common";
 import {RouterLink} from "@angular/router";
 import {LucideAngularModule} from 'lucide-angular';
 import {SidebarComponent} from "../../../shared/components/sidebar/sidebar.component";
@@ -27,7 +27,8 @@ import {WebsocketService} from "../../../core/service/websocket/websocket.servic
     DatePipe,
     RouterLink,
     LucideAngularModule,
-    SidebarComponent
+    SidebarComponent,
+    TitleCasePipe
   ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
@@ -37,6 +38,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
   userRole$: Observable<string | null>;
   loading$: Observable<boolean>;
   userId$: Observable<string | null>;
+  notifications$: Observable<any[]>;
+  unreadCount$: Observable<number>;
+  showNotifications = false;
+
 
   // Notification message
   notificationMessage: string | null = null;
@@ -67,6 +72,10 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.loading$ = this.store.select(selectLoading);
     this.userRole$ = this.store.select((state) => state.auth.role);
     this.userId$ = this.store.select(selectUserId);
+    this.notifications$ = this.webSocketService.getNotifications();
+    this.unreadCount$ = this.notifications$.pipe(
+      map((notifications) => notifications.filter((n) => !n.read).length)
+    );
   }
 
   ngOnInit(): void {
@@ -87,34 +96,21 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.updateStats(tickets.content);
       }
     });
-    this.userId$.pipe(
-      takeUntil(this.destroy$)
-    ).subscribe((userId) => {
+    this.userId$.pipe(takeUntil(this.destroy$)).subscribe((userId) => {
       if (userId) {
-        this.webSocketService.subscribeToUserNotifications(userId)
-          .then(() => console.log('Successfully subscribed to notifications'))
-          .catch(error => console.error('Error subscribing to notifications:', error));
+        this.webSocketService.connect(userId); // Connect with the authenticated user ID
       }
     });
 
     // Handle notifications with better logging and error handling
-    this.webSocketService
-      .getNotifications()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (message) => {
-          console.log('Notification received in component:', message);
-          if (message && message.trim() !== '') {
-            this.notificationMessage = message;
-            setTimeout(() => {
-              this.notificationMessage = null;
-            }, 5000);
-          } else {
-            console.warn('Empty notification received');
-          }
-        },
-        error: (error) => console.error('Error in notification subscription:', error),
-      });
+    this.notifications$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((notifications) => {
+      console.log('Received notifications:', notifications);
+      if (notifications.length > 0) {
+        this.notificationMessage = notifications[0].message;
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -230,6 +226,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
       })
     ).subscribe();
   }
+  toggleNotifications(): void {
+    this.showNotifications = !this.showNotifications;
+  }
 
+  markNotificationAsRead(index: number): void {
+    this.webSocketService.markAsRead(index);
+  }
 
+  clearNotifications(): void {
+    this.webSocketService.clearNotifications();
+  }
 }

@@ -23,4 +23,9 @@ public interface TicketService {
 
     // Search and filter tickets assigned to an AGENT
     Page<TicketResponse> searchTicketsByAgent(Long agentId, String status, String priority, String searchQuery, Pageable pageable);
+
+    Page<TicketResponse> searchTicketsByClient(Long agentId, String status, String searchQuery, Pageable pageable);
+
+    // New method
+    TicketResponse getTicketById(Long id);
 }

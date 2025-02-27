@@ -1,7 +1,7 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
 import {selectLoading, selectMyTickets, selectTickets} from "../../store/ticket.selectors";
 import {Store} from "@ngrx/store";
-import {loadMyTickets, LoadMyTicketsPayload, loadTickets} from "../../store/ticket.actions";
+import {loadMyTickets, LoadMyTicketsPayload, loadTickets, searchTicketsByClient} from "../../store/ticket.actions";
 import {EMPTY, filter, Observable, Subject, switchMap, takeUntil, tap} from "rxjs";
 import {Page} from "../../../../shared/models/page.model";
 import {TicketResponse} from "../../../../shared/models/ticket-response.model";
@@ -9,10 +9,11 @@ import {AuthState} from "../../../auth/store/auth.reducer";
 import {WebsocketService} from "../../../../core/service/websocket/websocket.service";
 import {selectUserId} from "../../../auth/store/auth.selectors";
 import {take} from "rxjs/operators";
-import {AsyncPipe, DatePipe, NgClass, NgForOf, NgIf} from "@angular/common";
+import {AsyncPipe, DatePipe, NgClass, NgForOf, NgIf, TitleCasePipe} from "@angular/common";
 import {FormsModule} from "@angular/forms";
 import {RouterLink} from "@angular/router";
 import {SidebarComponent} from "../../../../shared/components/sidebar/sidebar.component";
+import {searchTickets} from "../../../agent/store/agent.action";
 
 @Component({
   selector: 'app-ticket-list',
@@ -25,7 +26,8 @@ import {SidebarComponent} from "../../../../shared/components/sidebar/sidebar.co
     NgClass,
     RouterLink,
     DatePipe,
-    SidebarComponent
+    SidebarComponent,
+    TitleCasePipe
   ],
   templateUrl: './ticket-list.component.html',
   styleUrl: './ticket-list.component.css'
@@ -39,9 +41,9 @@ export class TicketListComponent implements OnInit, OnDestroy {
   // Notification message
   notificationMessage: string | null = null;
 
-  // Search and Filter
   searchQuery = '';
   selectedStatus = '';
+  selectedPriority = ''; // Add selectedPriority
 
   // Pagination
   currentPage = 0;
@@ -79,15 +81,14 @@ export class TicketListComponent implements OnInit, OnDestroy {
       }
     });
 
-    this.webSocketService
-      .getNotifications()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe((message) => {
-        this.notificationMessage = message;
-        setTimeout(() => {
-          this.notificationMessage = null; // Clear after 5 seconds
-        }, 5000);
-      });
+    // Listen for new notifications
+    this.webSocketService.getNotifications().pipe(
+      takeUntil(this.destroy$)
+    ).subscribe((notifications) => {
+      if (notifications.length > 0) {
+        this.notificationMessage = notifications[0].message;
+      }
+    });
   }
 
   private loadTickets(userId: string, page: number = 0, filters?: { status?: string; search?: string }): void {
@@ -112,14 +113,13 @@ export class TicketListComponent implements OnInit, OnDestroy {
   }
 
   applyFilters(): void {
-    this.userId$.pipe(take(1)).subscribe(userId => {
-      if (userId) {
-        this.loadTickets(userId, 0, {
-          status: this.selectedStatus || undefined,
-          search: this.searchQuery || undefined
-        });
-      }
-    });
+    console.log('Applying filters:', { status: this.selectedStatus, searchQuery: this.searchQuery, page: this.currentPage, size: this.pageSize });
+    this.store.dispatch(searchTicketsByClient({
+      status: this.selectedStatus,
+      searchQuery: this.searchQuery,
+      page: this.currentPage,
+      size: this.pageSize
+    }));
   }
 
   viewTicketDetails(ticket: TicketResponse): void {
