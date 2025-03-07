@@ -12,9 +12,9 @@ import {
   loadMyTicketsSuccess,
   loadTickets,
   loadTicketsFailure,
-  loadTicketsSuccess,
+  loadTicketsSuccess, searchTicketsByClient, searchTicketsByClientFailure, searchTicketsByClientSuccess,
   updateTicket,
-  updateTicketFailure,
+  updateTicketFailure, updateTicketStatus, updateTicketStatusFailure, updateTicketStatusSuccess,
   updateTicketSuccess,
 } from './ticket.actions';
 
@@ -82,6 +82,23 @@ export const ticketReducer = createReducer(
     loading: false,
   })),
 
+  // Search Tickets
+  on(searchTicketsByClient, (state) => ({
+    ...state,
+    loading: true,
+    error: null,
+  })),
+  on(searchTicketsByClientSuccess, (state, { tickets }) => ({
+    ...state,
+    myTickets: tickets, // Change from tickets to myTickets
+    loading: false,
+  })),
+  on(searchTicketsByClientFailure, (state, { error }) => ({
+    ...state,
+    error,
+    loading: false,
+  })),
+
   // Update Ticket
   on(updateTicket, (state) => ({ ...state, loading: true, error: null })),
   on(updateTicketSuccess, (state, { ticket }) => ({
@@ -99,5 +116,40 @@ export const ticketReducer = createReducer(
     ...state,
     error,
     loading: false,
-  }))
+  })),
+  // Update Ticket Status
+  on(updateTicketStatus, (state) => ({
+    ...state,
+    loading: true,
+    error: null,
+  })),
+  on(updateTicketStatusSuccess, (state, { ticket }) => {
+    if (!state.tickets) {
+      // If tickets is null, return state unchanged or handle as needed
+      return {
+        ...state,
+        loading: false,
+      };
+    }
+
+    // Map over the content array to update the specific ticket
+    const updatedContent = state.tickets.content.map((t) =>
+      t.id === ticket.id ? ticket : t
+    );
+
+    // Return a new Page<TicketResponse> object with updated content
+    return {
+      ...state,
+      tickets: {
+        ...state.tickets,           // Spread existing Page properties (totalPages, etc.)
+        content: updatedContent     // Replace content with updated array
+      },
+      loading: false,
+    };
+  }),
+  on(updateTicketStatusFailure, (state, { error }) => ({
+    ...state,
+    error,
+    loading: false,
+  })),
 );

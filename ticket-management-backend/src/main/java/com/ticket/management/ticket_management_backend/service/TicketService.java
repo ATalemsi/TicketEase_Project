@@ -18,9 +18,18 @@ public interface TicketService {
     // Update the status of a ticket
     TicketResponse updateTicketStatus(Long id, TicketStatusUpdateRequest request);
 
+    void deleteComment(Long ticketId, Long commentId);
+
     // Add a comment to a ticket
     TicketResponse addComment(Long id, String comment, Long agentId);
 
     // Search and filter tickets assigned to an AGENT
     Page<TicketResponse> searchTicketsByAgent(Long agentId, String status, String priority, String searchQuery, Pageable pageable);
+
+    Page<TicketResponse> searchTicketsByClient(Long agentId, String status, String searchQuery, Pageable pageable);
+
+    // New method
+    TicketResponse getTicketById(Long id);
+
+    TicketResponse assignTicketToAgent(Long ticketId, Long agentId);
 }

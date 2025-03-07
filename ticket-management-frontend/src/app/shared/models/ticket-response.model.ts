@@ -8,7 +8,16 @@ export interface TicketResponse {
   updatedAt: string;
   creatorId: number;
   agentId?: number;
-  responses?: TicketResponseDetail[];
+  comments?: {
+    id: number;
+    content: string;
+    author: {
+      id: number;
+      email: string;
+      fullName: string;
+    };
+    creationDate: string; // ISO string from backend
+  }[];
 }
 
 export interface TicketResponseDetail {

@@ -1,6 +1,7 @@
 import { createReducer, on } from '@ngrx/store';
 import { AgentState, initialAgentState} from "./agent.state";
 import * as AgentActions from './agent.action';
+import {deleteCommentSuccess} from "./agent.action";
 
 export const agentReducer = createReducer(
   initialAgentState,
@@ -85,6 +86,17 @@ export const agentReducer = createReducer(
     ...state,
     loading: true,
     error: null,
+  })),
+  on(deleteCommentSuccess, (state, { ticketId, commentId }) => ({
+    ...state,
+    tickets: state.tickets.map((ticket) =>
+      ticket.id === ticketId
+        ? {
+          ...ticket,
+          comments: ticket.comments!.filter((comment) => comment.id !== commentId),
+        }
+        : ticket
+    ),
   })),
   on(AgentActions.addCommentSuccess, (state, { ticket }) => ({
     ...state,

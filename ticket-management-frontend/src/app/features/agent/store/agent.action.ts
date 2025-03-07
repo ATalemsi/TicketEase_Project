@@ -62,7 +62,20 @@ export const addCommentFailure = createAction(
   '[Agent] Add Comment Failure',
   props<{ error: string }>()
 );
+export const deleteComment = createAction(
+  '[Agent] Delete Comment',
+  props<{ ticketId: number; commentId: number }>()
+);
 
+export const deleteCommentSuccess = createAction(
+  '[Agent] Delete Comment Success',
+  props<{ ticketId: number; commentId: number }>()
+);
+
+export const deleteCommentFailure = createAction(
+  '[Agent] Delete Comment Failure',
+  props<{ error: string }>()
+);
 // Search Tickets
 export const searchTickets = createAction(
   '[Agent] Search Tickets',

@@ -11,13 +11,15 @@ export const routes: Routes = [
     path: 'login',
     loadComponent: () => import('./features/auth/login/login.component')
       .then(m => m.LoginComponent),
-    title: 'Login - TicketEase'
+    title: 'Login - TicketEase',
+    canActivate: [AuthGuard],
   },
   {
     path: 'register',
     loadComponent: () => import('./features/auth/register/register.component')
       .then(m => m.RegisterComponent),
-    title: 'Register - TicketEase'
+    title: 'Register - TicketEase',
+    canActivate: [AuthGuard],
   },
   // Client Routes
   {
@@ -33,14 +35,6 @@ export const routes: Routes = [
     loadComponent: () => import('./features/tickets/components/ticket-list/ticket-list.component')
       .then(m => m.TicketListComponent),
     title: 'Client Tickets',
-    canActivate: [AuthGuard],
-    data: { requiredRole: 'CLIENT' }
-  },
-  {
-    path: 'client/ticket-details/:id',
-    loadComponent: () => import('./features/tickets/components/ticket-details/ticket-details.component')
-      .then(m => m.TicketDetailsComponent),
-    title: 'Ticket Details',
     canActivate: [AuthGuard],
     data: { requiredRole: 'CLIENT' }
   },

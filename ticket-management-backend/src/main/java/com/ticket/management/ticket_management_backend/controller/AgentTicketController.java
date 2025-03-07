@@ -8,6 +8,8 @@ import com.ticket.management.ticket_management_backend.security.UserPrincipal;
 import com.ticket.management.ticket_management_backend.service.TicketService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -24,7 +26,16 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class AgentTicketController {
 
+    private static final Logger log = LoggerFactory.getLogger(AgentTicketController.class);
     private final TicketService ticketService;
+
+
+    @GetMapping("/{ticketId}")
+    public ResponseEntity<TicketResponse> getTicketById(@PathVariable Long ticketId) {
+        log.info("Fetching ticket with ID: {}", ticketId);
+        TicketResponse ticket = ticketService.getTicketById(ticketId);
+        return ResponseEntity.ok(ticket);
+    }
 
     // Get all tickets assigned to the AGENT
     @GetMapping("/assigned")
@@ -67,5 +78,20 @@ public class AgentTicketController {
             Pageable pageable) {
         return ResponseEntity.ok(ticketService.searchTicketsByAgent(
                 userPrincipal.getId(), status, priority, searchQuery, pageable));
+    }
+
+    // AgentTicketController.java
+    @DeleteMapping("/{ticketId}/comments/{commentId}")
+    public ResponseEntity<?> deleteComment(
+            @PathVariable Long ticketId,
+            @PathVariable Long commentId) {
+        try {
+            ticketService.deleteComment(ticketId, commentId);
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
     }
 }

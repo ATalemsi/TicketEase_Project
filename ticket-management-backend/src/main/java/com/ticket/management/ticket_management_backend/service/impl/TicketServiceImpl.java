@@ -134,6 +134,29 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
+    public void deleteComment(Long ticketId, Long commentId) {
+        log.info("Deleting comment with ID: {} from ticket ID: {}", commentId, ticketId);
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+        // Find the comment to delete
+        Comment comment = ticket.getComments().stream()
+                .filter(c -> c.getId().equals(commentId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+
+        // Remove the comment from the ticket
+        ticket.getComments().remove(comment);
+
+        // Save the updated ticket
+        ticketRepository.save(ticket);
+
+        log.info("Comment deleted successfully");
+    }
+
+    @Override
+    @Transactional
     public TicketResponse addComment(Long id, String comment, Long agentId) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
@@ -190,6 +213,71 @@ public class TicketServiceImpl implements TicketService {
             return tickets.map(ticketMapper::toResponse);
         } catch (Exception e) {
             log.error("Error searching tickets: {}", e.getMessage(), e);
+            throw new RuntimeException("An unexpected error occurred", e);
+        }
+    }
+
+    @Override
+    public TicketResponse getTicketById(Long id) {
+        log.info("Fetching ticket with ID: {}", id);
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with ID: " + id));
+        return ticketMapper.toResponse(ticket);
+    }
+
+    @Override
+    public Page<TicketResponse> searchTicketsByClient(Long clientID, String status, String searchQuery, Pageable pageable) {
+        try {
+            log.info("Searching tickets for agent ID: {}", clientID);
+            log.info("Filters - Status: {}, Search Query: {}", status, searchQuery);
+            Status statusEnum = null;
+            if (status != null && !status.isEmpty()) {
+                try {
+                    statusEnum = Status.valueOf(status);
+                } catch (IllegalArgumentException e) {
+                    log.warn("Invalid status value: {}", status);
+                    throw new IllegalArgumentException("Invalid status value: " + status);
+                }
+            }
+            Page<Ticket> tickets = ticketRepository.findByAssignedAgentIdAndStatusTitleContainingIgnoreCase(
+                    clientID, statusEnum, searchQuery, pageable
+            );
+            log.info("Found {} tickets", tickets.getTotalElements());
+            return tickets.map(ticketMapper::toResponse);
+        } catch (Exception e) {
+            log.error("Error searching tickets: {}", e.getMessage(), e);
+            throw new RuntimeException("An unexpected error occurred", e);
+        }
+    }
+
+    @Override
+    @Transactional
+    public TicketResponse assignTicketToAgent(Long ticketId, Long agentId) {
+        try {
+            log.info("Assigning ticket ID: {} to agent ID: {}", ticketId, agentId);
+
+            // Fetch the ticket
+            Ticket ticket = ticketRepository.findById(ticketId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with ID: " + ticketId));
+
+            // Fetch the agent
+            User agent = userRepository.findById(agentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Agent not found with ID: " + agentId));
+
+            // Assign the agent to the ticket
+            ticket.setAssignedAgent(agent);
+
+            // Save the updated ticket
+            Ticket updatedTicket = ticketRepository.save(ticket);
+
+            // Notify the agent about the assignment
+            notificationService.notifyTicketAssigned(updatedTicket);
+
+            log.info("Ticket assigned successfully to agent: {}", agent.getEmail());
+
+            return ticketMapper.toResponse(updatedTicket);
+        } catch (Exception e) {
+            log.error("Error assigning ticket to agent: {}", e.getMessage(), e);
             throw new RuntimeException("An unexpected error occurred", e);
         }
     }

@@ -49,6 +49,7 @@ export const loadMyTicketsFailure = createAction(
   props<{ error: string }>()
 );
 
+
 // Load Assigned Tickets
 export const loadAssignedTickets = createAction(
   '[Ticket] Load Assigned Tickets',
@@ -94,5 +95,36 @@ export const updateTicketSuccess = createAction(
 
 export const updateTicketFailure = createAction(
   '[Ticket] Update Ticket Failure',
+  props<{ error: string }>()
+);
+
+export const searchTicketsByClient = createAction(
+  '[Ticket] Search Tickets By Client',
+  props<{ searchQuery?: string; status?: string; page: number; size: number }>()
+);
+
+export const searchTicketsByClientSuccess = createAction(
+  '[Ticket] Search Tickets By Client Success',
+  props<{ tickets: Page<TicketResponse> }>() // Changed from TicketResponse[] to Page<TicketResponse>
+);
+
+export const searchTicketsByClientFailure = createAction(
+  '[Ticket] Search Tickets Failure',
+  props<{ error: string }>()
+);
+
+// Update Ticket Status
+export const updateTicketStatus = createAction(
+  '[Ticket] Update Ticket Status',
+  props<{ ticketId: number; status: string }>()
+);
+
+export const updateTicketStatusSuccess = createAction(
+  '[Ticket] Update Ticket Status Success',
+  props<{ ticket: TicketResponse }>()
+);
+
+export const updateTicketStatusFailure = createAction(
+  '[Ticket] Update Ticket Status Failure',
   props<{ error: string }>()
 );

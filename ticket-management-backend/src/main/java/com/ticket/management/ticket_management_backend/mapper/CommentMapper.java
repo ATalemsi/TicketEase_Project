@@ -12,5 +12,8 @@ public interface CommentMapper {
     @Mapping(target = "createdAt", ignore = true) // Ignore unmapped field
     Comment toEntity(CommentRequest commentRequest);
 
+    @Mapping(source = "author", target = "author") // Map User to UserSummaryResponse using UserMapper
+    @Mapping(source = "content", target = "content")
+    @Mapping(source = "createdAt", target = "creationDate") // Match CommentResponse field name
     CommentResponse toResponse(Comment comment);
 }

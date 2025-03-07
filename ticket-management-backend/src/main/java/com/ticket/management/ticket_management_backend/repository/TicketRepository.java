@@ -9,7 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
-import java.nio.channels.FileChannel;
 import java.util.List;
 
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
@@ -37,6 +36,17 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             @Param("priorityEnum") Priority priorityEnum,
             @Param("searchQuery") String searchQuery,
             Pageable pageable);
+
+    @Query("SELECT t FROM Ticket t WHERE " +
+            "t.creator.id = :creatorId AND " +
+            "(:statusEnum IS NULL OR t.status = :statusEnum) AND " +
+            "(COALESCE(:searchQuery, '') = '' OR LOWER(t.title) LIKE LOWER(CONCAT('%', :searchQuery, '%')))")
+    Page<Ticket> findByAssignedAgentIdAndStatusTitleContainingIgnoreCase(
+            @Param("creatorId") Long creatorId,
+            @Param("statusEnum") Status statusEnum,
+            @Param("searchQuery") String searchQuery,
+            Pageable pageable
+    );
 
 }
 

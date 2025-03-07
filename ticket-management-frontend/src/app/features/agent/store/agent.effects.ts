@@ -4,6 +4,7 @@ import {of} from 'rxjs';
 import {catchError, map, mergeMap} from 'rxjs/operators';
 import {AgentServiceService as AgentService} from "../../../core/service/agent-service/agent-service.service";
 import * as AgentActions from './agent.action';
+import {deleteComment, deleteCommentFailure, deleteCommentSuccess} from "./agent.action";
 
 @Injectable()
 export class AgentEffects {
@@ -70,6 +71,18 @@ export class AgentEffects {
         this.agentService.addComment(ticketId, comment).pipe(
           map((ticket) => AgentActions.addCommentSuccess({ticket})),
           catchError((error) => of(AgentActions.addCommentFailure({error: error.message})))
+        )
+      )
+    )
+  );
+
+  deleteComment$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(deleteComment),
+      mergeMap(({ ticketId, commentId }) =>
+        this.agentService.deleteComment(ticketId, commentId).pipe(
+          map(() => deleteCommentSuccess({ ticketId, commentId })),
+          catchError((error) => of(deleteCommentFailure({ error: error.message })))
         )
       )
     )

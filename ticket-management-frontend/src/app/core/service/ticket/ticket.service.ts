@@ -52,5 +52,18 @@ export class TicketService {
     return this.http.get<Page<TicketResponse>>(`${this.apiUrl}/assigned`, { params });
   }
 
+  searchTicketsByClient(searchQuery?: string, status?: string, page: number = 0, size: number = 10): Observable<Page<TicketResponse>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    if (searchQuery) params = params.set('searchQuery', searchQuery);
+    if (status) params = params.set('status', status);
+    return this.http.get<Page<TicketResponse>>(`${this.apiUrl}/user/tickets/search`, { params });
+  }
+
+  updateTicketStatus(ticketId: number, status: string): Observable<TicketResponse> {
+    const url = `${this.apiUrl}/user/tickets/${ticketId}/status`;
+    return this.http.put<TicketResponse>(url, {status});
+  }
 
 }
