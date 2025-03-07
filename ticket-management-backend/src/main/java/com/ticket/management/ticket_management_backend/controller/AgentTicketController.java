@@ -79,4 +79,19 @@ public class AgentTicketController {
         return ResponseEntity.ok(ticketService.searchTicketsByAgent(
                 userPrincipal.getId(), status, priority, searchQuery, pageable));
     }
+
+    // AgentTicketController.java
+    @DeleteMapping("/{ticketId}/comments/{commentId}")
+    public ResponseEntity<?> deleteComment(
+            @PathVariable Long ticketId,
+            @PathVariable Long commentId) {
+        try {
+            ticketService.deleteComment(ticketId, commentId);
+            return ResponseEntity.noContent().build();
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
+        }
+    }
 }

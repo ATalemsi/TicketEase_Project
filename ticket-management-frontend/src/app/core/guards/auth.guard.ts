@@ -4,11 +4,14 @@ import { Store } from '@ngrx/store';
 import { map, take } from 'rxjs/operators';
 import { AuthState } from '../../features/auth/store/auth.reducer';
 import { Observable } from 'rxjs';
+import { JwtHelperService } from '@auth0/angular-jwt'; // Import JwtHelperService
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
+  private readonly jwtHelper = new JwtHelperService(); // Create an instance of JwtHelperService
+
   constructor(
     private readonly store: Store<{ auth: AuthState }>,
     private readonly router: Router
@@ -21,7 +24,6 @@ export class AuthGuard implements CanActivate {
       take(1),
       map((authState) => {
         console.log('Auth State in Guard:', authState);
-
         // Handle authenticated users
         if (authState.isAuthenticated) {
           // Prevent authenticated users from accessing login/register
@@ -55,6 +57,7 @@ export class AuthGuard implements CanActivate {
       })
     );
   }
+
 
   private redirectBasedOnRole(role: string): void {
     switch (role) {

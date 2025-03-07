@@ -298,8 +298,12 @@
                     <!-- Response Count Badge -->
                     <span *ngIf="ticket.comments?.length"
                           class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-            {{ ticket.comments!.length }} Responses
-          </span>
+                      {{ ticket.comments!.length }} Responses
+                    </span>
+                    <span *ngIf="!ticket.comments?.length"
+                          class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                      no Responses
+                    </span>
                     <button
                       (click)="viewTicketDetails(ticket)"
                       class="inline-flex items-center px-3 py-1.5 text-sm text-purple-600 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors"
@@ -357,17 +361,12 @@
                     <!-- Response Count Badge -->
                     <span *ngIf="ticket.comments?.length"
                           class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-            {{ ticket.comments!.length }} Responses
-          </span>
-                    <button
-                      (click)="resolveTicket(ticket.id)"
-                      class="inline-flex items-center px-3 py-1.5 text-sm text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"
-                    >
-                      <svg class="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                      </svg>
-                      Resolve
-                    </button>
+                      {{ ticket.comments!.length }} Responses
+                    </span>
+                    <span *ngIf="!ticket.comments?.length"
+                          class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                      no Responses
+                    </span>
                     <button
                       (click)="viewTicketDetails(ticket)"
                       class="inline-flex items-center px-3 py-1.5 text-sm text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors"
@@ -425,16 +424,12 @@
                     <!-- Response Count Badge -->
                     <span *ngIf="ticket.comments?.length"
                           class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-            {{ ticket.comments!.length }} Responses
-          </span>
-                    <span *ngIf="ticket.comments?.length"
-                          class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-            {{ ticket.comments!.length }} Responses
-          </span>
+                          {{ ticket.comments!.length }} Responses
+                      </span>
                     <span *ngIf="!ticket.comments?.length"
-                        class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
-            no Responses
-          </span>
+                          class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                      no Responses
+                    </span>
                     <button
                       (click)="viewTicketDetails(ticket)"
                       class="inline-flex items-center px-3 py-1.5 text-sm text-green-600 bg-green-50 rounded-lg hover:bg-green-100 transition-colors"

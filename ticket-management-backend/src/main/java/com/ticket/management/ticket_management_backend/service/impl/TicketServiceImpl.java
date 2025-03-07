@@ -134,6 +134,29 @@ public class TicketServiceImpl implements TicketService {
 
     @Override
     @Transactional
+    public void deleteComment(Long ticketId, Long commentId) {
+        log.info("Deleting comment with ID: {} from ticket ID: {}", commentId, ticketId);
+
+        Ticket ticket = ticketRepository.findById(ticketId)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));
+
+        // Find the comment to delete
+        Comment comment = ticket.getComments().stream()
+                .filter(c -> c.getId().equals(commentId))
+                .findFirst()
+                .orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
+
+        // Remove the comment from the ticket
+        ticket.getComments().remove(comment);
+
+        // Save the updated ticket
+        ticketRepository.save(ticket);
+
+        log.info("Comment deleted successfully");
+    }
+
+    @Override
+    @Transactional
     public TicketResponse addComment(Long id, String comment, Long agentId) {
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket not found"));

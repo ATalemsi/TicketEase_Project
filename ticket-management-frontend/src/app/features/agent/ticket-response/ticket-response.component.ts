@@ -6,9 +6,9 @@ import { ActivatedRoute } from '@angular/router';
 import { AgentState } from '../store/agent.state';
 import {selectError, selectLoading, selectTickets} from "../store/agent.selectors";
 import {Store} from "@ngrx/store";
-import {addComment, loadTicketById, updateTicketStatus} from "../store/agent.action";
+import {addComment, deleteComment, loadTicketById, updateTicketStatus} from "../store/agent.action";
 import {SidebarComponent} from "../../../shared/components/sidebar/sidebar.component";
-import {AsyncPipe, DatePipe, NgClass, NgForOf, NgIf} from "@angular/common";
+import {AsyncPipe, DatePipe, NgClass, NgForOf, NgIf, TitleCasePipe} from "@angular/common";
 import {FormsModule} from "@angular/forms";
 
 @Component({
@@ -21,7 +21,8 @@ import {FormsModule} from "@angular/forms";
     NgClass,
     NgForOf,
     FormsModule,
-    DatePipe
+    DatePipe,
+    TitleCasePipe
   ],
   templateUrl: './ticket-response.component.html',
   styleUrl: './ticket-response.component.css'
@@ -71,6 +72,10 @@ export class TicketResponseComponent implements OnInit{
       }));
       this.newComment = '';
     }
+  }
+
+  deleteComment(ticketId: number, commentId: number): void {
+    this.store.dispatch(deleteComment({ ticketId, commentId }));
   }
 
 }

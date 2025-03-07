@@ -9,9 +9,9 @@ import {TicketResponse} from "../../../shared/models/ticket-response.model";
     providedIn: 'root'
 })
 export class AgentServiceService {
-    private apiUrl = `${environment.apiUrl}/api/agent/tickets`;
+    private readonly apiUrl = `${environment.apiUrl}/api/agent/tickets`;
 
-    constructor(private http: HttpClient) {
+    constructor(private readonly http: HttpClient) {
     }
 
     getAssignedTickets(page: number, size: number): Observable<Page<TicketResponse>> {
@@ -36,6 +36,12 @@ export class AgentServiceService {
         const url = `${this.apiUrl}/${ticketId}/comments`;
         return this.http.post<TicketResponse>(url, null, {params: {comment}});
     }
+
+  // agent-service.service.ts
+  deleteComment(ticketId: number, commentId: number): Observable<void> {
+    const url = `${this.apiUrl}/${ticketId}/comments/${commentId}`;
+    return this.http.delete<void>(url);
+  }
 
     // Search and filter tickets assigned to the AGENT
     searchTickets(

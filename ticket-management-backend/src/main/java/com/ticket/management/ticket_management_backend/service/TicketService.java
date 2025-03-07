@@ -18,6 +18,8 @@ public interface TicketService {
     // Update the status of a ticket
     TicketResponse updateTicketStatus(Long id, TicketStatusUpdateRequest request);
 
+    void deleteComment(Long ticketId, Long commentId);
+
     // Add a comment to a ticket
     TicketResponse addComment(Long id, String comment, Long agentId);
 
