@@ -39,14 +39,6 @@ export const routes: Routes = [
     data: { requiredRole: 'CLIENT' }
   },
   {
-    path: 'client/ticket-details/:id',
-    loadComponent: () => import('./features/tickets/components/ticket-details/ticket-details.component')
-      .then(m => m.TicketDetailsComponent),
-    title: 'Ticket Details',
-    canActivate: [AuthGuard],
-    data: { requiredRole: 'CLIENT' }
-  },
-  {
     path: 'client/create-ticket',
     loadComponent: () => import('./features/tickets/components/ticket-form/ticket-form.component')
       .then(m => m.TicketFormComponent),

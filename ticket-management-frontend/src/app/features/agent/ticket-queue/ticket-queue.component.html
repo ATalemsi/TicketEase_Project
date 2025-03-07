@@ -30,6 +30,8 @@
               <option value="OPEN">Open</option>
               <option value="IN_PROGRESS">In Progress</option>
               <option value="RESOLVED">Resolved</option>
+              <option value="NOT_RESOLVED">Not Resolved</option>
+              <option value="CLOSED">Closed</option>
             </select>
             <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none"
                  fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -273,6 +275,100 @@
                 <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getPriorityClass(ticket.priority)"></span>
                 {{ ticket.priority | titlecase }} Priority
               </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Not Resolved Tickets Section -->
+      <div *ngIf="getFilteredTickets(tickets, 'NOT_RESOLVED').length > 0"
+           class="bg-white rounded-2xl shadow-sm overflow-hidden border border-red-100">
+        <div class="bg-gradient-to-r from-red-500/10 to-rose-500/10 p-4 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </div>
+            <h3 class="font-semibold text-gray-900">Not Resolved</h3>
+            <span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-sm font-medium">
+        {{ getFilteredTickets(tickets, 'NOT_RESOLVED').length }}
+      </span>
+          </div>
+        </div>
+        <div class="divide-y divide-gray-100">
+          <div *ngFor="let ticket of getFilteredTickets(tickets, 'NOT_RESOLVED')"
+               class="p-4 hover:bg-red-50 transition-colors">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <span class="text-sm font-medium text-gray-500">Ticket #{{ ticket.id }}</span>
+                <h4 class="text-base font-medium text-gray-900">{{ ticket.title }}</h4>
+              </div>
+              <a [routerLink]="['/agent/ticket-response', ticket.id]"
+                 class="inline-flex items-center px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                View Details
+                <svg class="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </a>
+            </div>
+            <p class="mt-1 text-sm text-gray-600 line-clamp-1">{{ ticket.description }}</p>
+            <div class="mt-2 flex items-center gap-4 text-xs text-gray-500">
+              <span>Created {{ ticket.createdAt | date:'MMM dd, yyyy' }}</span>
+              <span *ngIf="ticket.priority" class="flex items-center gap-1">
+          <span class="w-1.5 h-1.5 rounded-full" [ngClass]="getPriorityClass(ticket.priority)"></span>
+                {{ ticket.priority | titlecase }} Priority
+        </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="getFilteredTickets(tickets, 'CLOSED').length > 0"
+           class="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+        <div class="bg-gradient-to-r from-gray-500/10 to-slate-500/10 p-4 flex justify-between items-center">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg class="w-4 h-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M20 12H4M4 6h16M4 18h16"/>
+              </svg>
+            </div>
+            <h3 class="font-semibold text-gray-900">Closed</h3>
+            <span class="bg-gray-100 text-gray-700 px-2.5 py-0.5 rounded-full text-sm font-medium">
+                {{ getFilteredTickets(tickets, 'CLOSED').length }}
+              </span>
+          </div>
+        </div>
+        <div class="divide-y divide-gray-100">
+          <div *ngFor="let ticket of getFilteredTickets(tickets, 'CLOSED')"
+               class="p-4 hover:bg-gray-50 transition-colors">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-4">
+                <span class="text-sm font-medium text-gray-500">Ticket #{{ ticket.id }}</span>
+                <h4 class="text-base font-medium text-gray-900">{{ ticket.title }}</h4>
+              </div>
+              <a [routerLink]="['/agent/ticket-response', ticket.id]"
+                 class="inline-flex items-center px-3 py-1.5 text-sm text-gray-600 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                View Details
+                <svg class="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+              </a>
+            </div>
+            <p class="mt-1 text-sm text-gray-600 line-clamp-1">{{ ticket.description }}</p>
+            <div class="mt-2 flex items-center gap-4 text-xs text-gray-500">
+              <span>Created {{ ticket.createdAt | date:'MMM dd, yyyy' }}</span>
+              <span *ngIf="ticket.priority" class="flex items-center gap-1">
+                  <span class="w-1.5 h-1.5 rounded-full"
+                        [ngClass]="{
+                          'bg-red-500': ticket.priority === 'HIGH',
+                          'bg-orange-500': ticket.priority === 'MEDIUM',
+                          'bg-gray-500': ticket.priority === 'LOW'
+                        }">
+                  </span>
+                {{ ticket.priority | titlecase }} Priority
+                </span>
             </div>
           </div>
         </div>

@@ -62,6 +62,7 @@
             'bg-yellow-100 text-yellow-700 border-yellow-200': ticket.status === 'OPEN',
             'bg-blue-100 text-blue-700 border-blue-200': ticket.status === 'IN_PROGRESS',
             'bg-green-100 text-green-700 border-green-200': ticket.status === 'RESOLVED',
+            'bg-red-100 text-red-700 border-red-200': ticket.status === 'NOT_RESOLVED',
             'bg-gray-100 text-gray-700 border-gray-200': ticket.status === 'CLOSED'
           }" class="px-4 py-1.5 rounded-full text-sm font-medium border flex items-center gap-1.5 shadow-sm">
             <span class="w-2 h-2 rounded-full" [ngClass]="{
@@ -69,9 +70,10 @@
               'bg-yellow-500': ticket.status === 'OPEN',
               'bg-blue-500': ticket.status === 'IN_PROGRESS',
               'bg-green-500': ticket.status === 'RESOLVED',
+              'bg-red-500': ticket.status === 'NOT_RESOLVED',
               'bg-gray-500': ticket.status === 'CLOSED'
             }"></span>
-            {{ ticket.status }}
+            {{ ticket.status === 'NOT_RESOLVED' ? 'Not Resolved' : ticket.status }}
           </span>
         </div>
       </div>
@@ -87,6 +89,29 @@
             Description
           </h3>
           <p class="text-gray-700 leading-relaxed">{{ ticket.description }}</p>
+        </div>
+
+        <!-- Not Resolved Ticket Message -->
+        <div *ngIf="ticket.status === 'NOT_RESOLVED'"
+             class="bg-red-50 border border-red-200 rounded-xl p-5 shadow-sm">
+          <div class="flex items-start">
+            <div class="flex-shrink-0">
+              <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="ml-3">
+              <h3 class="text-base font-medium text-red-800">Solution Not Working</h3>
+              <div class="mt-2 text-sm text-red-700">
+                <p>The client has indicated that the previous solution did not resolve their issue. Please provide additional assistance.</p>
+                <div *ngIf="ticket.comments && ticket.comments.length > 0" class="mt-3 p-3 bg-white rounded-lg border border-red-100">
+                  <p class="text-xs text-gray-500 mb-1">Previous solution:</p>
+                  <p class="italic">"{{ ticket.comments[ticket.comments.length - 1]?.content }}"</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Resolved Ticket Message -->
@@ -111,8 +136,42 @@
           </div>
         </div>
 
-        <!-- Status Update -->
-        <div *ngIf="ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED'" class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <!-- Status Update for NEW, OPEN, IN_PROGRESS tickets -->
+        <div *ngIf="ticket.status === 'NEW' || ticket.status === 'OPEN' || ticket.status === 'IN_PROGRESS'" class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <h3 class="text-sm font-medium text-gray-700 mb-4 flex items-center">
+            <svg class="w-4 h-4 mr-1.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+            </svg>
+            Update Status
+          </h3>
+          <div class="flex gap-3">
+            <ng-container *ngFor="let status of availableStatuses">
+              <button
+                *ngIf="isStatusAvailable(ticket.status, status)"
+                (click)="updateStatus(ticket.id, status)"
+                [disabled]="ticket.status === status"
+                [ngClass]="{
+                  'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-transparent': ticket.status === status,
+                  'bg-white text-gray-700 hover:bg-gray-50 border-gray-200': ticket.status !== status
+                }"
+                class="px-4 py-2.5 rounded-lg border transition-all duration-200 font-medium text-sm flex-1 flex justify-center items-center gap-1.5"
+              >
+                <span class="w-2 h-2 rounded-full" [ngClass]="{
+                  'bg-white': ticket.status === status,
+                  'bg-yellow-500': status === 'OPEN',
+                  'bg-blue-500': status === 'IN_PROGRESS',
+                  'bg-green-500': status === 'RESOLVED',
+                  'bg-red-500': status === 'NOT_RESOLVED'
+                }"></span>
+                {{ status | titlecase }}
+              </button>
+            </ng-container>
+          </div>
+        </div>
+
+        <!-- Status Update for NOT_RESOLVED tickets -->
+        <div *ngIf="ticket.status === 'NOT_RESOLVED'" class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <h3 class="text-sm font-medium text-gray-700 mb-4 flex items-center">
             <svg class="w-4 h-4 mr-1.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -122,22 +181,11 @@
           </h3>
           <div class="flex gap-3">
             <button
-              *ngFor="let status of ['OPEN', 'IN_PROGRESS']"
-              (click)="updateStatus(ticket.id, status)"
-              [disabled]="ticket.status === status"
-              [ngClass]="{
-                'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white border-transparent': ticket.status === status,
-                'bg-white text-gray-700 hover:bg-gray-50 border-gray-200': ticket.status !== status
-              }"
-              class="px-4 py-2.5 rounded-lg border transition-all duration-200 font-medium text-sm flex-1 flex justify-center items-center gap-1.5"
+              (click)="updateStatus(ticket.id, 'IN_PROGRESS')"
+              class="px-4 py-2.5 rounded-lg border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition-all duration-200 font-medium text-sm flex-1 flex justify-center items-center gap-1.5"
             >
-              <span class="w-2 h-2 rounded-full" [ngClass]="{
-                'bg-white': ticket.status === status,
-                'bg-yellow-500': status === 'OPEN' && ticket.status !== status,
-                'bg-blue-500': status === 'IN_PROGRESS' && ticket.status !== status,
-                'bg-green-500': status === 'RESOLVED' && ticket.status !== status
-              }"></span>
-              {{ status | titlecase }}
+              <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+              Return to In Progress
             </button>
           </div>
         </div>
@@ -163,33 +211,40 @@
         </div>
 
         <!-- Add Comment -->
-        <div *ngIf="ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED'" class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+        <div *ngIf="canAddComment(ticket.status)" class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <h3 class="text-sm font-medium text-gray-700 mb-4 flex items-center">
             <svg class="w-4 h-4 mr-1.5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/>
             </svg>
-            Add Response
+            <span *ngIf="ticket.status === 'NOT_RESOLVED'" class="text-red-600">Provide New Solution</span>
+            <span *ngIf="ticket.status !== 'NOT_RESOLVED'">Add Response</span>
           </h3>
           <div class="flex flex-col gap-3">
             <textarea
               [(ngModel)]="newComment"
-              placeholder="Type your response here..."
+              [placeholder]="ticket.status === 'NOT_RESOLVED' ? 'Provide a new solution to address the client\'s issue...' : 'Type your response here...'"
               rows="3"
               class="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all resize-none"
+              [ngClass]="{'border-red-300 focus:ring-red-500 focus:border-red-500': ticket.status === 'NOT_RESOLVED'}"
             ></textarea>
             <div class="flex justify-end">
               <button
                 (click)="addComment(ticket.id)"
                 [disabled]="!newComment?.trim()"
-                [ngClass]="{'opacity-50 cursor-not-allowed': !newComment?.trim()}"
-                class="px-6 py-2.5 bg-gradient-to-r from-indigo-600 to-indigo-700 text-white rounded-xl hover:from-indigo-700 hover:to-indigo-800 transition-all shadow-sm hover:shadow-md font-medium flex items-center gap-2"
+                [ngClass]="{
+                  'opacity-50 cursor-not-allowed': !newComment?.trim(),
+                  'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800': ticket.status === 'NOT_RESOLVED',
+                  'bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800': ticket.status !== 'NOT_RESOLVED'
+                }"
+                class="px-6 py-2.5 text-white rounded-xl transition-all shadow-sm hover:shadow-md font-medium flex items-center gap-2"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                         d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                 </svg>
-                Send Response
+                <span *ngIf="ticket.status === 'NOT_RESOLVED'">Send New Solution</span>
+                <span *ngIf="ticket.status !== 'NOT_RESOLVED'">Send Response</span>
               </button>
             </div>
           </div>
@@ -207,7 +262,10 @@
           <div class="space-y-5">
             <div *ngFor="let comment of ticket.comments; let i = index"
                  class="flex gap-4 p-4 rounded-xl hover:bg-gray-50 transition-colors border border-gray-100"
-                 [ngClass]="{'bg-blue-50 border-blue-100': i === ticket.comments!.length - 1 && ticket.status === 'RESOLVED'}">
+                 [ngClass]="{
+                   'bg-blue-50 border-blue-100': i === ticket.comments!.length - 1 && ticket.status === 'RESOLVED',
+                   'bg-red-50 border-red-100': i === ticket.comments!.length - 1 && ticket.status === 'NOT_RESOLVED'
+                 }">
               <!-- Avatar/Initial -->
               <div class="flex-shrink-0 w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-medium text-sm">
                 {{ comment.author.email.charAt(0).toUpperCase() }}
@@ -223,7 +281,7 @@
               </div>
 
               <button
-                *ngIf="ticket.status !== 'CLOSED' && ticket.status !== 'RESOLVED'"
+                *ngIf="canDeleteComment(ticket.status)"
                 (click)="deleteComment(ticket.id, comment.id)"
                 class="text-red-500 hover:text-red-700 transition-colors p-1 rounded-full hover:bg-red-50"
                 title="Delete response"
@@ -251,3 +309,4 @@
     </div>
   </div>
 </div>
+

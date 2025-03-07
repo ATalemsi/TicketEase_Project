@@ -249,4 +249,36 @@ public class TicketServiceImpl implements TicketService {
             throw new RuntimeException("An unexpected error occurred", e);
         }
     }
+
+    @Override
+    @Transactional
+    public TicketResponse assignTicketToAgent(Long ticketId, Long agentId) {
+        try {
+            log.info("Assigning ticket ID: {} to agent ID: {}", ticketId, agentId);
+
+            // Fetch the ticket
+            Ticket ticket = ticketRepository.findById(ticketId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with ID: " + ticketId));
+
+            // Fetch the agent
+            User agent = userRepository.findById(agentId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Agent not found with ID: " + agentId));
+
+            // Assign the agent to the ticket
+            ticket.setAssignedAgent(agent);
+
+            // Save the updated ticket
+            Ticket updatedTicket = ticketRepository.save(ticket);
+
+            // Notify the agent about the assignment
+            notificationService.notifyTicketAssigned(updatedTicket);
+
+            log.info("Ticket assigned successfully to agent: {}", agent.getEmail());
+
+            return ticketMapper.toResponse(updatedTicket);
+        } catch (Exception e) {
+            log.error("Error assigning ticket to agent: {}", e.getMessage(), e);
+            throw new RuntimeException("An unexpected error occurred", e);
+        }
+    }
 }

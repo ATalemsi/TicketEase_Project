@@ -10,10 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -39,5 +36,11 @@ public class AdminController {
             @AuthenticationPrincipal UserPrincipal userPrincipal,
             Pageable pageable) {
         return ResponseEntity.ok(ticketService.getTicketsByAgent(userPrincipal.getId(), pageable));
+    }
+    @PostMapping("/tickets/{ticketId}/assign/{agentId}")
+    public ResponseEntity<TicketResponse> assignTicketToAgent(
+            @PathVariable Long ticketId,
+            @PathVariable Long agentId) {
+        return ResponseEntity.ok(ticketService.assignTicketToAgent(ticketId, agentId));
     }
 }

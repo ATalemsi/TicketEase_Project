@@ -30,4 +30,6 @@ public interface TicketService {
 
     // New method
     TicketResponse getTicketById(Long id);
+
+    TicketResponse assignTicketToAgent(Long ticketId, Long agentId);
 }

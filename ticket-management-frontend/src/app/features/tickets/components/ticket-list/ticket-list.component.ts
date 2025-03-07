@@ -45,6 +45,7 @@ export class TicketListComponent implements OnInit, OnDestroy {
   newTickets$: Observable<TicketResponse[]>;
   inProgressTickets$: Observable<TicketResponse[]>;
   resolvedTickets$: Observable<TicketResponse[]>;
+  notResolvedTickets$: Observable<TicketResponse[]>
 
   // Notification message
   notificationMessage: string | null = null;
@@ -89,6 +90,9 @@ export class TicketListComponent implements OnInit, OnDestroy {
     this.resolvedTickets$ = this.tickets$.pipe(
       map((page) => page?.content.filter((ticket) => ticket.status === 'RESOLVED') ?? [])
     );
+    this.notResolvedTickets$ = this.tickets$.pipe(
+      map((page) => page?.content.filter((ticket) => ticket.status === "NOT_RESOLVED") ?? []),
+    )
   }
 
   ngOnInit(): void {
