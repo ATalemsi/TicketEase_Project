@@ -105,6 +105,14 @@ export const routes: Routes = [
     data: { requiredRole: 'ADMIN' }
   },
   {
+    path: 'admin/ticket-assignment',
+    loadComponent: () => import('./features/admin/ticket-assignment/ticket-assignment.component')
+      .then(m => m.TicketAssignmentComponent),
+    title: 'Ticket Assignment',
+    canActivate: [AuthGuard],
+    data: { requiredRole: 'ADMIN' }
+  },
+  {
     path: '**',
     redirectTo: '/login'
   }

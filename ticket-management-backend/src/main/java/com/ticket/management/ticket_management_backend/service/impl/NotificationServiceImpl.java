@@ -20,19 +20,15 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void notifyNewTicket(Ticket ticket, Long userId) {
         NotificationMessage notification = new NotificationMessage("New ticket created: " + ticket.getTitle());
-        String destination = "/user/" + userId.toString() + "/queue/tickets";
 
-        try {
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonMessage = mapper.writeValueAsString(notification);
-            log.info("Sending notification JSON: {}", jsonMessage);
-        } catch (Exception e) {
-            log.error("Error serializing notification", e);
-        }
+        log.info("Contenu de la notification: {}", notification);
 
-        log.info("Sending notification to destination {}: {}", destination, notification.getMessage());
-        messagingTemplate.convertAndSendToUser(userId.toString(), "/queue/tickets", notification);
-        log.info("Notification sent to user {}", userId);
+        String userDestination = "/user/" + userId.toString() + "/queue/tickets";
+        log.info("Envoi direct à la destination {}", userDestination);
+        //messagingTemplate.convertAndSend(userDestination, notification);
+        messagingTemplate.convertAndSend("/topic/tickets/" + userId, notification);
+
+        log.info("Notifications envoyées");
     }
 
     @Override

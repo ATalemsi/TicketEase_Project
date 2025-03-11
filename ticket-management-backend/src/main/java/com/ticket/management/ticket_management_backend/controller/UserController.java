@@ -1,14 +1,12 @@
 package com.ticket.management.ticket_management_backend.controller;
 
 import com.ticket.management.ticket_management_backend.dto.response.UserSummaryResponse;
+import com.ticket.management.ticket_management_backend.model.User;
 import com.ticket.management.ticket_management_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -29,4 +27,6 @@ public class UserController {
     public ResponseEntity<List<UserSummaryResponse>> getAllAgents() {
         return ResponseEntity.ok(userService.getAllAgents());
     }
+
+
 }

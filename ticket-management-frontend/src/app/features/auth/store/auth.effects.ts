@@ -25,9 +25,11 @@ export class AuthEffects {
           }),
           catchError(error => {
             console.error('Login Error:', error);
-            return of(AuthActions.loginFailure({
-              error: error.error?.message || 'Login failed'
-            }));
+            let errorMessage = error.error?.message || 'Login failed';
+            if (error.status === 403 || error.message.includes('banned')) { // Handle banned users
+              errorMessage = 'Your account has been banned. Please contact support.';
+            }
+            return of(AuthActions.loginFailure({ error: errorMessage }));
           })
         )
       )

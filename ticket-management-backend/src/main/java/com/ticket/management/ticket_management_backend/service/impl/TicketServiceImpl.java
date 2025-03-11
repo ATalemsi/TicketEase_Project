@@ -281,4 +281,10 @@ public class TicketServiceImpl implements TicketService {
             throw new RuntimeException("An unexpected error occurred", e);
         }
     }
+
+    @Override
+    public Page<TicketResponse> getUnassignedTickets(Pageable pageable) {
+        Page<Ticket> tickets = ticketRepository.findByAssignedAgentIsNull(pageable);
+        return tickets.map(ticketMapper::toResponse);
+    }
 }

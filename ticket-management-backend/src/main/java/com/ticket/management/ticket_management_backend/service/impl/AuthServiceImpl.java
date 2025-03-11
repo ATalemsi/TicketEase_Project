@@ -3,6 +3,7 @@ package com.ticket.management.ticket_management_backend.service.impl;
 import com.ticket.management.ticket_management_backend.dto.request.LoginRequest;
 import com.ticket.management.ticket_management_backend.dto.request.RegisterRequest;
 import com.ticket.management.ticket_management_backend.dto.response.AuthResponse;
+import com.ticket.management.ticket_management_backend.exception.ResourceNotFoundException;
 import com.ticket.management.ticket_management_backend.model.Role;
 import com.ticket.management.ticket_management_backend.model.User;
 import com.ticket.management.ticket_management_backend.repository.RoleRepository;
@@ -30,6 +31,15 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse authenticateUser(LoginRequest loginRequest) {
+
+        // Fetch the user by email
+        User user = userRepository.findByEmail(loginRequest.getEmail())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Check if the user is active (not banned)
+        if (!user.isActive()) {
+            throw new IllegalArgumentException("Your account has been banned. Please contact support.");
+        }
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getEmail(),
@@ -38,7 +48,6 @@ public class AuthServiceImpl implements AuthService {
         );
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = tokenProvider.generateToken(authentication);
-        User user = userRepository.findByEmail(loginRequest.getEmail()).orElseThrow();
         user.setLastLogin(LocalDateTime.now());
         userRepository.save(user);
         return AuthResponse.builder()

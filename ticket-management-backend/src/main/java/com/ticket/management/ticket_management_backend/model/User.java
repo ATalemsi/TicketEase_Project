@@ -32,6 +32,14 @@ public class User {
     @JoinColumn(name = "role_id", nullable = false)
     private Role role;
 
+    @Column(nullable = false)
+    private boolean isActive = true;
+
+
+    public boolean isActive() {
+        return isActive;
+    }
+
     private LocalDateTime createdAt;
     private LocalDateTime lastLogin;
 

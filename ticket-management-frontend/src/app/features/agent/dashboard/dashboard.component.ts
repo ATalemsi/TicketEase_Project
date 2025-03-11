@@ -33,10 +33,10 @@ export class DashboardComponent implements OnInit , OnDestroy {
   error$: Observable<string | null>;
   userRole$: Observable<string | null>;
   userId$: Observable<string | null>; // Add userId observable
-  notifications$: Observable<any[]>;
-  unreadCount$: Observable<number>;
   showNotifications = false;
-  private destroy$ = new Subject<void>();
+  private readonly destroy$ = new Subject<void>();
+
+  notificationMessage: string | null = null;
 
   // Derived observables for ticket counts
   openTicketsCount$: Observable<number>;
@@ -50,10 +50,7 @@ export class DashboardComponent implements OnInit , OnDestroy {
     this.error$ = this.store.select(selectError);
     this.userRole$ = this.store.select((state) => state.auth.role);
     this.userId$ = this.store.select(selectUserId); // Use the selector
-    this.notifications$ = this.websocketService.getNotifications();
-    this.unreadCount$ = this.notifications$.pipe(
-      map((notifications) => notifications.filter((n) => !n.read).length)
-    );
+
 
     // Create derived observables for ticket counts
     this.openTicketsCount$ = this.tickets$.pipe(
@@ -74,17 +71,13 @@ export class DashboardComponent implements OnInit , OnDestroy {
 
   ngOnInit(): void {
     this.store.dispatch(loadAssignedTickets());
-    this.userId$.pipe(takeUntil(this.destroy$)).subscribe((userId) => {
-      if (userId) {
-        this.websocketService.connect(userId); // Connect with the authenticated user ID
-      }
-    });
+
+
   }
 
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-    this.websocketService.disconnect();
   }
 
   getFilteredTickets(tickets: TicketResponse[], status: string): TicketResponse[] {
@@ -98,11 +91,5 @@ export class DashboardComponent implements OnInit , OnDestroy {
     this.showNotifications = !this.showNotifications;
   }
 
-  markNotificationAsRead(index: number): void {
-    this.websocketService.markAsRead(index);
-  }
 
-  clearNotifications(): void {
-    this.websocketService.clearNotifications();
-  }
 }

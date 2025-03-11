@@ -44,7 +44,6 @@ export class SidebarComponent implements OnInit {
   }
 
   logout(): void {
-    this.webSocketService.disconnect();
     this.store.dispatch(AuthActions.logout());
   }
 }

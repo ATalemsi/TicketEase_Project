@@ -32,4 +32,6 @@ public interface TicketService {
     TicketResponse getTicketById(Long id);
 
     TicketResponse assignTicketToAgent(Long ticketId, Long agentId);
+
+    Page<TicketResponse> getUnassignedTickets(Pageable pageable);
 }

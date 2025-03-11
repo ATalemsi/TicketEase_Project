@@ -13,4 +13,6 @@ public class UserSummaryResponse {
     private int id;
     private String email;
     private String fullName;
+    private String role;
+    private boolean isActive;
 }

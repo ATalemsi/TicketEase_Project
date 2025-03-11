@@ -39,16 +39,40 @@ export class WebsocketService {
   }
 
   subscribeToUserNotifications(userId: string): void {
-    if (!this.stompClient.connected) return;
+    if (!this.stompClient || !this.stompClient.connected) {
+      console.error("Impossible de s'abonner: client non connecté");
+      return;
+    }
 
-    this.stompClient.subscribe(`/user/${userId}/queue/tickets`, (message) => {
+    console.log(`Souscription au canal /topic/tickets/${userId}`);
+    this.stompClient.subscribe(`/topic/tickets/${userId}`, (message) => {
+      console.log("Message reçu via topic spécifique:", message);
+      this.processMessage(message);
+    });
+  }
+
+  private processMessage(message: any): void {
+    console.log("Traitement du message:", message.body);
+
+    try {
       const payload = JSON.parse(message.body);
-      const notification = { message: payload.message, timestamp: new Date().toISOString(), read: false };
-      const currentNotifications = this.notificationsSubject.value;
-      currentNotifications.unshift(notification); // Add new notification to the top
+      console.log("Données extraites:", payload);
+
+      const notification = {
+        message: payload.message,
+        timestamp: new Date().toISOString(),
+        read: false
+      };
+
+      console.log("Ajout de notification:", notification);
+
+      const currentNotifications = [...this.notificationsSubject.value];
+      currentNotifications.unshift(notification);
       this.notificationsSubject.next(currentNotifications);
       this.saveNotificationsToStorage(currentNotifications);
-    });
+    } catch (error) {
+      console.error("Erreur lors du traitement du message:", error);
+    }
   }
 
   getNotifications(): Observable<any[]> {
