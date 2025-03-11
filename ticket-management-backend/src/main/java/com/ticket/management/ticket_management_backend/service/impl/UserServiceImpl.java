@@ -1,6 +1,7 @@
 package com.ticket.management.ticket_management_backend.service.impl;
 
 import com.ticket.management.ticket_management_backend.dto.response.UserSummaryResponse;
+import com.ticket.management.ticket_management_backend.dto.update.UpdateUserStatusRequest;
 import com.ticket.management.ticket_management_backend.exception.ResourceNotFoundException;
 import com.ticket.management.ticket_management_backend.mapper.UserMapper;
 import com.ticket.management.ticket_management_backend.model.User;
@@ -36,6 +37,27 @@ public class UserServiceImpl  implements UserService {
                 .map(userMapper::toResponseDto)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<UserSummaryResponse> getAllUsers() {
+        return userRepository.findAll().stream()
+                .filter(user -> "CLIENT".equals(user.getRole().getName()) ||
+                        "AGENT".equals(user.getRole().getName()))
+                .map(userMapper::toResponseDto)
+                .toList();
+    }
+
+    @Override
+    public UserSummaryResponse updateUserStatus(Long userId, UpdateUserStatusRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        user.setActive(request.isActive());
+        User savedUser = userRepository.save(user);
+
+        return userMapper.toResponseDto(savedUser);
+    }
+
 
     @Transactional(readOnly = true)
     public boolean existsByEmail(String email) {

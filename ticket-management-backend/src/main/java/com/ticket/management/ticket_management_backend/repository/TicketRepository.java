@@ -15,6 +15,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
     Page<Ticket> findByCreatorId(Long creatorId, Pageable pageable);
     Page<Ticket> findByAssignedAgentId(Long agentId, Pageable pageable);
     Page<Ticket> findByStatus(Status status, Pageable pageable);
+    Page<Ticket> findByAssignedAgentIsNull(Pageable pageable);
+
 
     @Query("SELECT t FROM Ticket t WHERE t.status = 'NEW' OR t.status = 'IN_PROGRESS'")
     List<Ticket> findActiveTickets();

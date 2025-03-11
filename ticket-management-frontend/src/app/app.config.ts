@@ -16,6 +16,8 @@ import {TicketEffects} from "./features/tickets/store/ticket.effects";
 import {localStorageSync} from "ngrx-store-localstorage";
 import {agentReducer} from "./features/agent/store/agent.reducer";
 import {AgentEffects} from "./features/agent/store/agent.effects";
+import {adminReducer} from "./features/admin/store/admin.reducer";
+import {AdminEffects} from "./features/admin/store/admin.effects";
 
 export function localStorageSyncReducer(reducer: any): any {
   if (typeof window !== 'undefined' && window.localStorage) {
@@ -31,8 +33,8 @@ export const appConfig: ApplicationConfig = {
     provideHttpClient(withFetch(), withInterceptors([authInterceptor])), // Add withFetch() here
     provideClientHydration(),
     provideAnimationsAsync(),
-    provideStore({ auth: authReducer , tickets: ticketReducer , agent: agentReducer } ,  { metaReducers }),
-    provideEffects([AuthEffects , TicketEffects , AgentEffects]),
+    provideStore({ auth: authReducer , tickets: ticketReducer , agent: agentReducer , admin:adminReducer } ,  { metaReducers }),
+    provideEffects([AuthEffects , TicketEffects , AgentEffects , AdminEffects]),
     provideStoreDevtools({
       maxAge: 25,
       logOnly: !isDevMode(),

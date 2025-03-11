@@ -1,25 +1,30 @@
-import { Component,  OnDestroy,  OnInit } from "@angular/core"
-import  { TicketResponse } from "../../../shared/models/ticket-response.model"
-import { EMPTY, map,  Observable, Subject, switchMap, takeUntil, tap } from "rxjs"
-import  { Store } from "@ngrx/store"
+import { Component, OnDestroy, OnInit } from "@angular/core";
+import { TicketResponse } from "../../../shared/models/ticket-response.model";
+import { EMPTY, map, Observable, Subject, switchMap, takeUntil, tap } from "rxjs";
+import { Store } from "@ngrx/store";
 import {
   loadMyTickets,
-   LoadMyTicketsPayload,
+  LoadMyTicketsPayload,
   searchTicketsByClient,
   updateTicketStatus,
-} from "../../tickets/store/ticket.actions"
-import { selectLoading, selectMyTickets } from "../../tickets/store/ticket.selectors"
-import  { Page } from "../../../shared/models/page.model"
-import { filter, take } from "rxjs/operators"
-import { FormsModule } from "@angular/forms"
-import { AsyncPipe, DatePipe, NgClass, NgForOf, NgIf, TitleCasePipe } from "@angular/common"
-import { RouterLink } from "@angular/router"
-import { LucideAngularModule } from "lucide-angular"
-import { SidebarComponent } from "../../../shared/components/sidebar/sidebar.component"
-import  { AuthState } from "../../auth/store/auth.reducer"
-import { selectUserId } from "../../auth/store/auth.selectors"
-import  { WebsocketService } from "../../../core/service/websocket/websocket.service"
+} from "../../tickets/store/ticket.actions";
+import { selectLoading, selectMyTickets } from "../../tickets/store/ticket.selectors";
+import { Page } from "../../../shared/models/page.model";
+import { filter, take } from "rxjs/operators";
+import { FormsModule } from "@angular/forms";
+import { AsyncPipe, DatePipe, NgClass, NgForOf, NgIf, TitleCasePipe } from "@angular/common";
+import { RouterLink } from "@angular/router";
+import { LucideAngularModule } from "lucide-angular";
+import { SidebarComponent } from "../../../shared/components/sidebar/sidebar.component";
+import { AuthState } from "../../auth/store/auth.reducer";
+import { selectUserId } from "../../auth/store/auth.selectors";
+import { WebsocketService } from "../../../core/service/websocket/websocket.service";
 
+interface NotificationMessage {
+  message: string;
+  timestamp: string;
+  read: boolean;
+}
 @Component({
   selector: "app-dashboard",
   standalone: true,
@@ -39,80 +44,78 @@ import  { WebsocketService } from "../../../core/service/websocket/websocket.ser
   styleUrl: "./dashboard.component.css",
 })
 export class DashboardComponent implements OnInit, OnDestroy {
-  tickets$: Observable<Page<TicketResponse> | null>
-  userRole$: Observable<string | null>
-  loading$: Observable<boolean>
-  userId$: Observable<string | null>
-  notifications$: Observable<any[]>
-  unreadCount$: Observable<number>
-  showNotifications = false
+  tickets$: Observable<Page<TicketResponse> | null>;
+  userRole$: Observable<string | null>;
+  loading$: Observable<boolean>;
+  userId$: Observable<string | null>;
+  notifications$: Observable<NotificationMessage[]>; // Updated to handle NotificationMessage[]
+  showNotifications = false;
 
   // Filtered tickets observables
-  newTickets$: Observable<TicketResponse[]>
-  inProgressTickets$: Observable<TicketResponse[]>
-  resolvedTickets$: Observable<TicketResponse[]>
-  notResolvedTickets$: Observable<TicketResponse[]> // Added observable for NOT_RESOLVED tickets
+  newTickets$: Observable<TicketResponse[]>;
+  inProgressTickets$: Observable<TicketResponse[]>;
+  resolvedTickets$: Observable<TicketResponse[]>;
+  notResolvedTickets$: Observable<TicketResponse[]>; // Added observable for NOT_RESOLVED tickets
 
-  notificationMessage: string | null = null
+  notificationMessage: string | null = null;
 
   // Stats counters
-  totalTickets = 0
-  openTickets = 0
-  inProgressTickets = 0
-  resolvedTickets = 0
-  newTickets = 0
-  notResolvedTickets = 0 // Added counter for NOT_RESOLVED tickets
+  totalTickets = 0;
+  openTickets = 0;
+  inProgressTickets = 0;
+  resolvedTickets = 0;
+  newTickets = 0;
+  notResolvedTickets = 0; // Added counter for NOT_RESOLVED tickets
 
-  currentPage = 0
-  pageSize = 10
+  currentPage = 0;
+  pageSize = 10;
 
   // Search and Filter
-  searchQuery = ""
-  selectedStatus = ""
+  searchQuery = "";
+  selectedStatus = "";
 
   // Ticket Details Modal
-  selectedTicket: TicketResponse | null = null
+  selectedTicket: TicketResponse | null = null;
 
-  private readonly destroy$ = new Subject<void>()
+  private readonly destroy$ = new Subject<void>();
 
   constructor(
     private readonly store: Store<{ auth: AuthState }>,
     private readonly webSocketService: WebsocketService,
   ) {
-    this.tickets$ = this.store.select(selectMyTickets)
-    this.loading$ = this.store.select(selectLoading)
-    this.userRole$ = this.store.select((state) => state.auth.role)
-    this.userId$ = this.store.select(selectUserId)
-    this.notifications$ = this.webSocketService.getNotifications()
-    this.unreadCount$ = this.notifications$.pipe(map((notifications) => notifications.filter((n) => !n.read).length))
+    this.tickets$ = this.store.select(selectMyTickets);
+    this.loading$ = this.store.select(selectLoading);
+    this.userRole$ = this.store.select((state) => state.auth.role);
+    this.userId$ = this.store.select(selectUserId);
+    this.notifications$ = this.webSocketService.getNotifications(); // Updated to handle NotificationMessage[]
 
     // Create filtered observables
     this.newTickets$ = this.tickets$.pipe(
       map((page) => page?.content.filter((ticket) => ticket.status === "NEW") ?? []),
-    )
+    );
     this.inProgressTickets$ = this.tickets$.pipe(
       map((page) => page?.content.filter((ticket) => ticket.status === "IN_PROGRESS") ?? []),
-    )
+    );
     this.resolvedTickets$ = this.tickets$.pipe(
       map((page) => page?.content.filter((ticket) => ticket.status === "RESOLVED") ?? []),
-    )
+    );
     this.notResolvedTickets$ = this.tickets$.pipe(
       map((page) => page?.content.filter((ticket) => ticket.status === "NOT_RESOLVED") ?? []),
-    )
+    );
   }
 
   ngOnInit(): void {
     this.userId$.pipe(takeUntil(this.destroy$)).subscribe((userId) => {
       if (userId) {
-        this.loadTickets(userId)
+        this.loadTickets(userId);// Subscribe to user-specific notifications
       }
-    })
+    });
 
     this.tickets$.pipe(takeUntil(this.destroy$)).subscribe((tickets) => {
       if (tickets?.content) {
-        this.updateStats(tickets.content)
+        this.updateStats(tickets.content);
       }
-    })
+    });
 
     this.userId$.pipe(takeUntil(this.destroy$)).subscribe((userId) => {
       if (userId) {
@@ -134,7 +137,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       searchQuery: this.searchQuery,
       page: this.currentPage,
       size: this.pageSize,
-    })
+    });
     this.store.dispatch(
       searchTicketsByClient({
         status: this.selectedStatus,
@@ -142,17 +145,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
         page: this.currentPage,
         size: this.pageSize,
       }),
-    )
+    );
   }
 
   ngOnDestroy(): void {
-    this.destroy$.next()
-    this.destroy$.complete()
-    this.notificationMessage = null // Clear the notification message
+    this.destroy$.next();
+    this.destroy$.complete();
+    this.notificationMessage = null; // Clear the notification message
   }
 
   private loadTickets(userId: string, page = 0, filters?: { status?: string; search?: string }): void {
-    this.currentPage = page
+    this.currentPage = page;
 
     const payload: LoadMyTicketsPayload = {
       userId,
@@ -161,43 +164,43 @@ export class DashboardComponent implements OnInit, OnDestroy {
         size: this.pageSize,
       },
       filters,
-    }
+    };
 
-    this.store.dispatch(loadMyTickets(payload))
+    this.store.dispatch(loadMyTickets(payload));
   }
 
   private updateStats(tickets: TicketResponse[]): void {
-    this.totalTickets = tickets.length
-    this.newTickets = tickets.filter((t) => t.status === "NEW").length
-    this.openTickets = tickets.filter((t) => t.status === "OPEN").length
-    this.inProgressTickets = tickets.filter((t) => t.status === "IN_PROGRESS").length
-    this.resolvedTickets = tickets.filter((t) => t.status === "RESOLVED").length
-    this.notResolvedTickets = tickets.filter((t) => t.status === "NOT_RESOLVED").length // Count NOT_RESOLVED tickets
+    this.totalTickets = tickets.length;
+    this.newTickets = tickets.filter((t) => t.status === "NEW").length;
+    this.openTickets = tickets.filter((t) => t.status === "OPEN").length;
+    this.inProgressTickets = tickets.filter((t) => t.status === "IN_PROGRESS").length;
+    this.resolvedTickets = tickets.filter((t) => t.status === "RESOLVED").length;
+    this.notResolvedTickets = tickets.filter((t) => t.status === "NOT_RESOLVED").length; // Count NOT_RESOLVED tickets
   }
 
   getStatusClass(status: string): string {
     switch (status.toUpperCase()) {
       case "NEW":
-        return "bg-purple-100 text-purple-800"
+        return "bg-purple-100 text-purple-800";
       case "OPEN":
-        return "bg-yellow-100 text-yellow-800"
+        return "bg-yellow-100 text-yellow-800";
       case "IN_PROGRESS":
-        return "bg-blue-100 text-blue-800"
+        return "bg-blue-100 text-blue-800";
       case "RESOLVED":
-        return "bg-green-100 text-green-800"
+        return "bg-green-100 text-green-800";
       case "NOT_RESOLVED":
-        return "bg-red-100 text-red-800"
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-gray-100 text-gray-800"
+        return "bg-gray-100 text-gray-800";
     }
   }
 
   viewTicketDetails(ticket: TicketResponse): void {
-    this.selectedTicket = ticket
+    this.selectedTicket = ticket;
   }
 
   closeModal(): void {
-    this.selectedTicket = null
+    this.selectedTicket = null;
   }
 
   // Pagination methods
@@ -206,7 +209,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
       .pipe(
         take(1),
         switchMap((userId) => {
-          if (!userId) return EMPTY
+          if (!userId) return EMPTY;
           return this.tickets$.pipe(
             take(1),
             filter((tickets) => !!tickets),
@@ -215,13 +218,13 @@ export class DashboardComponent implements OnInit, OnDestroy {
                 this.loadTickets(userId, this.currentPage + 1, {
                   status: this.selectedStatus || undefined,
                   search: this.searchQuery || undefined,
-                })
+                });
               }
             }),
-          )
+          );
         }),
       )
-      .subscribe()
+      .subscribe();
   }
 
   prevPage(): void {
@@ -234,11 +237,11 @@ export class DashboardComponent implements OnInit, OnDestroy {
             this.loadTickets(userId!, this.currentPage - 1, {
               status: this.selectedStatus || undefined,
               search: this.searchQuery || undefined,
-            })
+            });
           }
         }),
       )
-      .subscribe()
+      .subscribe();
   }
 
   goToPage(page: number): void {
@@ -250,45 +253,43 @@ export class DashboardComponent implements OnInit, OnDestroy {
           this.loadTickets(userId!, page, {
             status: this.selectedStatus || undefined,
             search: this.searchQuery || undefined,
-          })
+          });
         }),
       )
-      .subscribe()
+      .subscribe();
   }
 
   toggleNotifications(): void {
-    this.showNotifications = !this.showNotifications
+    this.showNotifications = !this.showNotifications;
   }
 
   markNotificationAsRead(index: number): void {
-    this.webSocketService.markAsRead(index)
+    this.webSocketService.markAsRead(index);
   }
 
   clearNotifications(): void {
-    this.webSocketService.clearNotifications()
+    this.webSocketService.clearNotifications();
   }
 
   resolveTicket(ticketId: number): void {
     if (this.selectedTicket && this.selectedTicket.status === "IN_PROGRESS") {
-      this.store.dispatch(updateTicketStatus({ ticketId, status: "RESOLVED" }))
-      this.closeModal()
+      this.store.dispatch(updateTicketStatus({ ticketId, status: "RESOLVED" }));
+      this.closeModal();
     }
   }
 
   markAsNotResolved(ticketId: number): void {
-    // Modified to handle both RESOLVED and IN_PROGRESS statuses
     if (
       this.selectedTicket &&
       (this.selectedTicket.status === "RESOLVED" || this.selectedTicket.status === "IN_PROGRESS")
     ) {
-      this.store.dispatch(updateTicketStatus({ ticketId, status: "NOT_RESOLVED" }))
+      this.store.dispatch(updateTicketStatus({ ticketId, status: "NOT_RESOLVED" }));
 
       // Show notification
-      this.notificationMessage = "Ticket marked as not resolved. An agent will review it soon."
+      this.notificationMessage = "Ticket marked as not resolved. An agent will review it soon.";
 
       // Close the modal
-      this.closeModal()
+      this.closeModal();
     }
   }
 }
-

@@ -103,21 +103,8 @@ export class TicketListComponent implements OnInit, OnDestroy {
       }
     });
 
-    // Setup WebSocket notifications
-    this.userId$.pipe(takeUntil(this.destroy$)).subscribe((userId) => {
-      if (userId) {
-        this.webSocketService.subscribeToUserNotifications(userId);
-      }
-    });
 
-    // Listen for new notifications
-    this.webSocketService.getNotifications().pipe(
-      takeUntil(this.destroy$)
-    ).subscribe((notifications) => {
-      if (notifications.length > 0) {
-        this.notificationMessage = notifications[0].message;
-      }
-    });
+
 
     // Update stats when tickets change
     this.tickets$.pipe(takeUntil(this.destroy$)).subscribe((tickets) => {

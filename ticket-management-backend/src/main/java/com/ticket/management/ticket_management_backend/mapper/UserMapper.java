@@ -11,5 +11,7 @@ public interface UserMapper {
     @Mapping(source = "id", target = "id")
     @Mapping(source = "email", target = "email")
     @Mapping(source = "fullName", target = "fullName")
+    @Mapping(source = "role.name", target = "role")
+    @Mapping(source = "active", target = "isActive")
     UserSummaryResponse toResponseDto(User user);
 }

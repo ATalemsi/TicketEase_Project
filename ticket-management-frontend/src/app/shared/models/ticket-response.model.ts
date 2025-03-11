@@ -6,8 +6,16 @@ export interface TicketResponse {
   priority: string;
   createdAt: string;
   updatedAt: string;
-  creatorId: number;
-  agentId?: number;
+  creator: {
+    id: number,
+    email: string,
+    fullName: string
+  },
+  assignedAgent: {
+    id: number,
+    email: string,
+    fullName: string
+  },
   comments?: {
     id: number;
     content: string;
@@ -37,4 +45,7 @@ export interface Comment {
 export interface User {
   id: number;
   email: string;
+  fullName: string;
+  role: string;
+  active: boolean;
 }
