@@ -1,6 +1,7 @@
 package com.ticket.management.ticket_management_backend.controller;
 
 
+import com.ticket.management.ticket_management_backend.dto.response.PerformanceMetricsResponse;
 import com.ticket.management.ticket_management_backend.dto.response.TicketResponse;
 import com.ticket.management.ticket_management_backend.dto.response.UserSummaryResponse;
 import com.ticket.management.ticket_management_backend.dto.update.UpdateUserStatusRequest;
@@ -68,7 +69,7 @@ public class AdminController {
     /**
      * Update the status of a user
      * @param userId ID of the user
-     * @param isActive New status of the user
+     * @param request New status of the user
      * @return Updated user
      */
     @PatchMapping("/{userId}/status")
@@ -81,6 +82,12 @@ public class AdminController {
     @GetMapping("/tickets/unassigned")
     public ResponseEntity<Page<TicketResponse>> getUnassignedTickets(Pageable pageable) {
         return ResponseEntity.ok(ticketService.getUnassignedTickets(pageable));
+    }
+
+    @GetMapping("/reports/performance")
+    public ResponseEntity<PerformanceMetricsResponse> getPerformanceMetrics() {
+        PerformanceMetricsResponse metrics = ticketService.calculatePerformanceMetrics();
+        return ResponseEntity.ok(metrics);
     }
 
 }

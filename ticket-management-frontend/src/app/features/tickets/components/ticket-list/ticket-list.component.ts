@@ -41,6 +41,11 @@ export class TicketListComponent implements OnInit, OnDestroy {
   userId$: Observable<string | null>;
   userRole$: Observable<string | null>;
 
+  isModalOpen = false
+
+  sidebarOpen = false; // Start closed on mobile
+  isMobile = false;
+
   // Filtered tickets observables
   newTickets$: Observable<TicketResponse[]>;
   inProgressTickets$: Observable<TicketResponse[]>;
@@ -102,16 +107,38 @@ export class TicketListComponent implements OnInit, OnDestroy {
         this.loadTickets(userId);
       }
     });
-
-
-
-
     // Update stats when tickets change
     this.tickets$.pipe(takeUntil(this.destroy$)).subscribe((tickets) => {
       if (tickets?.content) {
         this.updateStats(tickets.content);
       }
     });
+
+    // Initialize mobile detection
+    this.checkMobile();
+    this.sidebarOpen = !this.isMobile;
+
+    // Add resize listener
+    window.addEventListener('resize', () => this.checkMobile());
+  }
+
+  private checkMobile(): void {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.innerWidth < 1024;
+
+    // Close sidebar automatically on mobile
+    if (!wasMobile && this.isMobile) {
+      this.sidebarOpen = false;
+    }
+    // Open sidebar automatically on desktop
+    if (wasMobile && !this.isMobile) {
+      this.sidebarOpen = true;
+    }
+  }
+  // Sidebar toggle method
+  toggleSidebar(): void {
+    console.log('Toggling sidebar'); // Debug log
+    this.sidebarOpen = !this.sidebarOpen;
   }
 
   private loadTickets(userId: string, page: number = 0, filters?: { status?: string; search?: string }): void {

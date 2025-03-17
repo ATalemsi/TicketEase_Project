@@ -4,7 +4,7 @@ import {TicketService} from "../../../core/service/ticket/ticket.service";
 import {
   createTicket,
   createTicketFailure,
-  createTicketSuccess,
+  createTicketSuccess, deleteTicket, deleteTicketFailure, deleteTicketSuccess,
   loadAssignedTickets,
   loadAssignedTicketsFailure,
   loadAssignedTicketsSuccess,
@@ -133,6 +133,19 @@ export class TicketEffects {
         this.ticketService.updateTicket(id, request).pipe(
           map((ticket) => updateTicketSuccess({ ticket })),
           catchError((error) => of(updateTicketFailure({ error: error.message })))
+        )
+      )
+    )
+  );
+
+  // Delete Ticket
+  deleteTicket$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(deleteTicket),
+      mergeMap(({ ticketId }) =>
+        this.ticketService.deleteTicket(ticketId).pipe(
+          map(() => deleteTicketSuccess({ ticketId })),
+          catchError((error) => of(deleteTicketFailure({ error: error.message })))
         )
       )
     )

@@ -60,8 +60,8 @@
               [ngClass]="{'border-red-300': assignmentForm.get('ticketId')?.invalid && assignmentForm.get('ticketId')?.touched}"
             >
               <option value="" disabled selected>Select a ticket</option>
-              <ng-container *ngIf="tickets$ | async as ticketsPage">
-                <option *ngFor="let ticket of ticketsPage.content" [value]="ticket.id">
+              <ng-container *ngIf="unassignedTickets$ | async as unassignedTickets">
+                <option *ngFor="let ticket of unassignedTickets.content" [value]="ticket.id">
                   #{{ ticket.id }} - {{ ticket.title }}
                 </option>
               </ng-container>
@@ -118,9 +118,9 @@
 
       <!-- Content -->
       <ng-container *ngIf="!(loading$ | async)">
-        <ng-container *ngIf="tickets$ | async as ticketsPage">
+        <ng-container *ngIf="unassignedTickets$ | async as unassignedTickets">
           <!-- Empty State -->
-          <div *ngIf="!ticketsPage?.content?.length" class="flex flex-col items-center justify-center py-16 px-4 text-center">
+          <div *ngIf="!unassignedTickets?.content?.length" class="flex flex-col items-center justify-center py-16 px-4 text-center">
             <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
               <svg class="w-8 h-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -140,7 +140,7 @@
           </div>
 
           <!-- Tickets Table -->
-          <div *ngIf="ticketsPage?.content?.length! > 0" class="overflow-x-auto">
+          <div *ngIf="unassignedTickets?.content?.length! > 0" class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200">
               <thead class="bg-gray-50">
               <tr>
@@ -153,7 +153,7 @@
               </tr>
               </thead>
               <tbody class="bg-white divide-y divide-gray-200">
-              <tr *ngFor="let ticket of ticketsPage.content" class="hover:bg-gray-50 transition-colors">
+              <tr *ngFor="let ticket of unassignedTickets.content" class="hover:bg-gray-50 transition-colors">
                 <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ ticket.id }}</td>
                 <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ ticket.title }}</td>
                 <td class="px-6 py-4 whitespace-nowrap">

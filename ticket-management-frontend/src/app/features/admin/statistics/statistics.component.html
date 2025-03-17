@@ -1,1 +1,219 @@
-<p>statistics works!</p>
+<div class="flex min-h-screen bg-slate-50">
+  <!-- Sidebar Component -->
+  <app-sidebar [userRole$]="userRole$"></app-sidebar>
+
+  <!-- Main Content -->
+  <div class="flex-1 ml-64 p-6">
+    <div class="p-6">
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-slate-800">Performance Reports</h1>
+        <p class="text-slate-500 mt-2">Analyze ticket metrics and system performance</p>
+      </div>
+
+      <!-- Error Alert -->
+      <ng-container *ngIf="error$ | async as error">
+        <div class="mb-6 p-4 bg-red-100 border border-red-200 text-red-700 rounded-lg">
+          {{ error }}
+        </div>
+      </ng-container>
+
+      <!-- Loading State -->
+      <div *ngIf="loading$ | async" class="flex justify-center my-8">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+      </div>
+
+      <ng-container *ngIf="metrics$ | async as metrics">
+        <!-- Performance Metrics Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <!-- Total Tickets -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-slate-500">Total Tickets</p>
+                <h3 class="text-3xl font-bold text-slate-800 mt-1">
+                  {{ metrics.totalTickets }}
+                </h3>
+              </div>
+              <div class="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-blue-600" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resolved Tickets -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-slate-500">Resolved Tickets</p>
+                <h3 class="text-3xl font-bold text-slate-800 mt-1">
+                  {{ metrics.resolvedTickets }}
+                </h3>
+                <p class="text-xs font-medium text-green-600 mt-2" *ngIf="metrics.totalTickets > 0">
+                  {{ (metrics.resolvedTickets / metrics.totalTickets * 100) | number:'1.1-1' }}% of total
+                </p>
+              </div>
+              <div class="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-green-600" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unresolved Tickets -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-slate-500">Unresolved Tickets</p>
+                <h3 class="text-3xl font-bold text-slate-800 mt-1">
+                  {{ metrics.unresolvedTickets }}
+                </h3>
+                <p class="text-xs font-medium text-red-600 mt-2" *ngIf="metrics.totalTickets > 0">
+                  {{ (metrics.unresolvedTickets / metrics.totalTickets * 100) | number:'1.1-1' }}% of total
+                </p>
+              </div>
+              <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-red-600" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Average Resolution Time -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div class="flex items-center justify-between">
+              <div>
+                <p class="text-sm font-medium text-slate-500">Avg. Resolution Time</p>
+                <h3 class="text-3xl font-bold text-slate-800 mt-1">
+                  {{ metrics.averageResolutionTime | number:'1.1-1' }}h
+                </h3>
+                <p class="text-xs font-medium text-purple-600 mt-2">
+                  {{ metrics.averageResolutionTime < 12 ? 'Good' : 'Needs improvement' }}
+                </p>
+              </div>
+              <div class="w-14 h-14 rounded-full bg-purple-50 flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 text-purple-600" fill="none" viewBox="0 0 24 24"
+                     stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Charts Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!-- Ticket Status Distribution -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div style="height: 300px; width: 100%; position: relative;">
+              <canvas #ticketStatusChart style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </div>
+
+          <!-- Ticket Assignment Distribution -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div style="height: 300px; width: 100%; position: relative;">
+              <canvas #ticketAssignmentChart style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Charts -->
+        <div class="grid grid-cols-1 gap-6 mb-8">
+          <!-- Ticket Comparison Chart -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div style="height: 300px; width: 100%; position: relative;">
+              <canvas #ticketComparisonChart style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <!-- Ticket Trend Chart -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div style="height: 300px; width: 100%; position: relative;">
+              <canvas #ticketTrendChart style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </div>
+
+          <!-- Ticket Performance Chart -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div style="height: 300px; width: 100%; position: relative;">
+              <canvas #ticketPerformanceChart style="width: 100%; height: 100%;"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Metrics -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <!-- New Tickets -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div class="flex flex-col">
+              <p class="text-sm font-medium text-slate-500">New Tickets</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ metrics.newTickets }}</h3>
+              <div class="mt-4 flex items-center">
+                <div class="w-full bg-slate-200 rounded-full h-2">
+                  <div class="bg-blue-600 h-2 rounded-full" [style.width]="(metrics.newTickets / metrics.totalTickets * 100) + '%'"></div>
+                </div>
+                <span class="ml-2 text-xs text-slate-500">{{ (metrics.newTickets / metrics.totalTickets * 100) | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- In Progress Tickets -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div class="flex flex-col">
+              <p class="text-sm font-medium text-slate-500">In Progress Tickets</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ metrics.inProgressTickets }}</h3>
+              <div class="mt-4 flex items-center">
+                <div class="w-full bg-slate-200 rounded-full h-2">
+                  <div class="bg-yellow-500 h-2 rounded-full" [style.width]="(metrics.inProgressTickets / metrics.totalTickets * 100) + '%'"></div>
+                </div>
+                <span class="ml-2 text-xs text-slate-500">{{ (metrics.inProgressTickets / metrics.totalTickets * 100) | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Assigned Tickets -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div class="flex flex-col">
+              <p class="text-sm font-medium text-slate-500">Assigned Tickets</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ metrics.ticketsAssignedToAgents }}</h3>
+              <div class="mt-4 flex items-center">
+                <div class="w-full bg-slate-200 rounded-full h-2">
+                  <div class="bg-indigo-600 h-2 rounded-full" [style.width]="(metrics.ticketsAssignedToAgents / metrics.totalTickets * 100) + '%'"></div>
+                </div>
+                <span class="ml-2 text-xs text-slate-500">{{ (metrics.ticketsAssignedToAgents / metrics.totalTickets * 100) | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Unassigned Tickets -->
+          <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 transition-all hover:shadow-md">
+            <div class="flex flex-col">
+              <p class="text-sm font-medium text-slate-500">Unassigned Tickets</p>
+              <h3 class="text-2xl font-bold text-slate-800 mt-1">{{ metrics.ticketsUnassigned }}</h3>
+              <div class="mt-4 flex items-center">
+                <div class="w-full bg-slate-200 rounded-full h-2">
+                  <div class="bg-slate-500 h-2 rounded-full" [style.width]="(metrics.ticketsUnassigned / metrics.totalTickets * 100) + '%'"></div>
+                </div>
+                <span class="ml-2 text-xs text-slate-500">{{ (metrics.ticketsUnassigned / metrics.totalTickets * 100) | number:'1.0-0' }}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>
+

@@ -128,3 +128,19 @@ export const updateTicketStatusFailure = createAction(
   '[Ticket] Update Ticket Status Failure',
   props<{ error: string }>()
 );
+
+// Delete Ticket
+export const deleteTicket = createAction(
+  '[Ticket] Delete Ticket',
+  props<{ ticketId: number }>()
+);
+
+export const deleteTicketSuccess = createAction(
+  '[Ticket] Delete Ticket Success',
+  props<{ ticketId: number }>()
+);
+
+export const deleteTicketFailure = createAction(
+  '[Ticket] Delete Ticket Failure',
+  props<{ error: string }>()
+);

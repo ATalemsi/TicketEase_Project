@@ -1,16 +1,112 @@
-<!-- dashboard.component.html -->
+
 <div class="flex min-h-screen bg-slate-100">
   <!-- Sidebar Component -->
   <app-sidebar [userRole$]="userRole$" class="fixed h-full w-64"></app-sidebar>
 
   <!-- Main Content Area -->
   <div class="flex-1 ml-64">
+    <!-- Notification Toast -->
+    <div
+      *ngIf="notificationMessage"
+      class="fixed top-6 right-6 z-50 p-4 bg-green-600 text-white rounded-xl shadow-lg flex items-center justify-between animate-slide-in"
+    >
+      <span class="text-sm font-medium">{{ notificationMessage }}</span>
+      <button (click)="notificationMessage = null" class="ml-3 focus:outline-none">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
     <div class="p-6">
       <!-- Header -->
       <div class="flex justify-between items-center mb-6">
         <div>
           <h1 class="text-2xl font-bold text-slate-800">Agent Dashboard</h1>
           <p class="text-sm text-slate-500 mt-1">Manage and process support tickets</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <!-- Notification Bell -->
+          <div class="relative">
+            <button
+              (click)="toggleNotifications()"
+              class="p-2 text-gray-500 hover:text-gray-700 focus:outline-none"
+            >
+              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+              <!-- Notification Badge -->
+              <span
+                *ngIf="(notifications$ | async)?.length! > 0"
+                class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5"
+              >
+                {{ (notifications$ | async)?.length }}
+              </span>
+            </button>
+
+            <!-- Notification Dropdown -->
+            <div
+              *ngIf="showNotifications"
+              class="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-lg border border-gray-100 z-50"
+            >
+              <div class="p-4">
+                <div class="flex justify-between items-center mb-4">
+                  <h3 class="text-lg font-semibold text-gray-900">Notifications</h3>
+                  <button
+                    (click)="clearNotifications()"
+                    class="text-sm text-indigo-600 hover:text-indigo-700"
+                  >
+                    Clear All
+                  </button>
+                </div>
+
+                <!-- Notification List -->
+                <div class="space-y-3">
+                  <div
+                    *ngFor="let notification of notifications$ | async; let i = index"
+                    class="flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                    [ngClass]="{ 'bg-gray-50': !notification.read }"
+                  >
+                    <div class="flex-shrink-0 w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <div class="flex-1 min-w-0">
+                      <p class="text-sm font-medium text-gray-900">{{ notification.message }}</p>
+                      <p class="text-xs text-gray-500 mt-1">
+                        {{ notification.timestamp | date:'MMM d, y, h:mm a' }}
+                      </p>
+                    </div>
+                    <button
+                      *ngIf="!notification.read"
+                      (click)="markNotificationAsRead(i)"
+                      class="text-sm text-indigo-600 hover:text-indigo-700"
+                    >
+                      Mark as Read
+                    </button>
+                  </div>
+
+                  <!-- No Notifications -->
+                  <div
+                    *ngIf="(notifications$ | async)?.length === 0"
+                    class="text-center py-4 text-sm text-gray-500"
+                  >
+                    No new notifications.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -113,6 +209,24 @@
               </div>
             </div>
             <div class="h-1 w-full bg-gradient-to-r from-slate-500 to-gray-500"></div>
+          </div>
+
+          <div class="bg-white rounded-xl shadow-sm overflow-hidden border border-slate-100 transform transition-all hover:scale-105 hover:shadow-md">
+            <div class="p-4 bg-gradient-to-br from-red-500/5 to-rose-500/10">
+              <div class="flex items-center justify-between">
+                <p class="text-sm font-medium text-slate-500">Not Resolved</p>
+                <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                  <svg class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="mt-3">
+                <h3 class="text-3xl font-bold text-slate-900">{{ notResolvedTicketsCount$ | async }}</h3>
+                <p class="text-xs text-slate-500 mt-1">Tickets requiring further attention</p>
+              </div>
+            </div>
+            <div class="h-1 w-full bg-gradient-to-r from-red-500 to-rose-500"></div>
           </div>
         </div>
 
@@ -417,6 +531,60 @@
                   </span>
                   {{ ticket.priority | titlecase }} Priority
                 </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Not Resolved Tickets Section -->
+        <div *ngIf="getFilteredTickets(tickets, 'NOT_RESOLVED').length > 0" class="bg-white rounded-2xl shadow-sm overflow-hidden border border-red-100">
+          <div class="bg-gradient-to-r from-red-500/10 to-rose-500/10 p-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+              </div>
+              <h3 class="font-semibold text-gray-900">Not Resolved</h3>
+              <span class="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-full text-sm font-medium">
+                  {{ getFilteredTickets(tickets, 'NOT_RESOLVED').length }}
+                </span>
+            </div>
+          </div>
+          <div class="divide-y divide-gray-100">
+            <div *ngFor="let ticket of getFilteredTickets(tickets, 'NOT_RESOLVED')" class="p-4 hover:bg-red-50 transition-colors">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-4">
+                  <span class="text-sm font-medium text-gray-500">Ticket #{{ ticket.id }}</span>
+                  <h4 class="text-base font-medium text-gray-900">{{ ticket.title }}</h4>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span *ngIf="ticket.comments?.length" class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                      {{ ticket.comments!.length }} Responses
+                    </span>
+                  <span *ngIf="!ticket.comments?.length" class="bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                      No Responses
+                    </span>
+                  <a [routerLink]="['/agent/ticket-response', ticket.id]"
+                     class="inline-flex items-center px-3 py-1.5 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors">
+                    View Details
+                    <svg class="w-4 h-4 ml-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                  </a>
+                </div>
+              </div>
+              <p class="mt-1 text-sm text-gray-600 line-clamp-1">{{ ticket.description }}</p>
+              <div class="mt-2 flex items-center gap-4 text-xs text-gray-500">
+                <span>Created {{ ticket.createdAt | date:'MMM dd, yyyy' }}</span>
+                <span *ngIf="ticket.priority" class="flex items-center gap-1">
+                    <span class="w-1.5 h-1.5 rounded-full" [ngClass]="{
+                      'bg-red-500': ticket.priority === 'HIGH',
+                      'bg-orange-500': ticket.priority === 'MEDIUM',
+                      'bg-gray-500': ticket.priority === 'LOW'
+                    }"></span>
+                  {{ ticket.priority | titlecase }} Priority
+                  </span>
               </div>
             </div>
           </div>

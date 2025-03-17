@@ -3,7 +3,7 @@ import { createReducer, on } from '@ngrx/store';
 import {
   createTicket,
   createTicketFailure,
-  createTicketSuccess,
+  createTicketSuccess, deleteTicket, deleteTicketFailure, deleteTicketSuccess,
   loadAssignedTickets,
   loadAssignedTicketsFailure,
   loadAssignedTicketsSuccess,
@@ -151,5 +151,34 @@ export const ticketReducer = createReducer(
     ...state,
     error,
     loading: false,
+  })),
+
+
+  // Delete Ticket
+  on(deleteTicket, (state) => ({ ...state, loading: true, error: null })),
+  on(deleteTicketSuccess, (state, { ticketId }) => {
+    if (!state.tickets) return state;
+
+    // Remove the deleted ticket from tickets state
+    return {
+      ...state,
+      tickets: {
+        ...state.tickets,
+        content: state.tickets.content.filter(ticket => ticket.id !== ticketId),
+        totalElements: state.tickets.totalElements! - 1
+      },
+      // Also remove from myTickets if present
+      myTickets: state.myTickets ? {
+        ...state.myTickets,
+        content: state.myTickets.content.filter(ticket => ticket.id !== ticketId),
+        totalElements: state.myTickets.totalElements! - 1
+      } : state.myTickets,
+      loading: false
+    };
+  }),
+  on(deleteTicketFailure, (state, { error }) => ({
+    ...state,
+    error,
+    loading: false
   })),
 );

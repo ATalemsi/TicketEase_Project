@@ -41,13 +41,16 @@ interface AppState {
   styleUrl: './ticket-assignment.component.css'
 })
 export class TicketAssignmentComponent implements OnInit , OnDestroy {
-  tickets$: Observable<Page<TicketResponse> | null> | undefined;
+  unassignedTickets$: Observable<Page<TicketResponse> | null> | undefined;
   agents$: Observable<User[] | null>;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
   userRole$: Observable<string | null>;
 
   private readonly subscriptions: Subscription[] = [];
+
+  currentPage = 0;
+  pageSize = 10;
 
   assignmentForm: FormGroup;
   notificationMessage: string | null = null;
@@ -57,6 +60,7 @@ export class TicketAssignmentComponent implements OnInit , OnDestroy {
     private readonly fb: FormBuilder,
 
   ) {
+    this.unassignedTickets$ = this.store.select(selectUnassignedTickets);
     this.agents$ = this.store.select(selectAgents);
     this.loading$ = this.store.select(selectLoading);
     this.error$ = this.store.select(selectError);
@@ -81,12 +85,18 @@ export class TicketAssignmentComponent implements OnInit , OnDestroy {
 
   loadData(): void {
     this.notificationMessage = null;
-    this.store.dispatch(AdminActions.loadUnassignedTickets());
+    this.store.dispatch(AdminActions.loadUnassignedTickets({
+      page: this.currentPage,
+      size: this.pageSize
+    }));
     this.store.dispatch(AdminActions.loadAgents());
   }
 
   loadUnassignedTickets(): void {
-    this.store.dispatch(AdminActions.loadUnassignedTickets());
+    this.store.dispatch(AdminActions.loadUnassignedTickets({
+      page: this.currentPage,
+      size: this.pageSize
+    }));
   }
 
   onAssignTicket(): void {
