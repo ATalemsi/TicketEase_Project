@@ -55,6 +55,11 @@ export class TicketAssignmentComponent implements OnInit , OnDestroy {
   assignmentForm: FormGroup;
   notificationMessage: string | null = null;
 
+  isModalOpen = false
+
+  sidebarOpen = false; // Start closed on mobile
+  isMobile = false;
+
   constructor(
     private readonly store: Store<AppState>,
     private readonly fb: FormBuilder,
@@ -70,17 +75,44 @@ export class TicketAssignmentComponent implements OnInit , OnDestroy {
       ticketId: ['', Validators.required],
       agentId: ['', Validators.required]
     });
+    this.checkMobile();
+    this.sidebarOpen = !this.isMobile;
+
+    // Add resize listener
+    window.addEventListener('resize', () => this.checkMobile());
+  }
+
+  private checkMobile(): void {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.innerWidth < 1024;
+
+    // Close sidebar automatically on mobile
+    if (!wasMobile && this.isMobile) {
+      this.sidebarOpen = false;
+    }
+    // Open sidebar automatically on desktop
+    if (wasMobile && !this.isMobile) {
+      this.sidebarOpen = true;
+    }
   }
 
   ngOnInit(): void {
 
     this.loadUnassignedTickets();
     this.loadData();
+
+    this.checkMobile();
+  }
+  // Sidebar toggle method
+  toggleSidebar(): void {
+    console.log('Toggling sidebar'); // Debug log
+    this.sidebarOpen = !this.sidebarOpen;
   }
 
   ngOnDestroy(): void {
     // Clean up all subscriptions
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    window.removeEventListener('resize', () => this.checkMobile());
   }
 
   loadData(): void {

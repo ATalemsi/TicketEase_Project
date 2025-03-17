@@ -40,6 +40,11 @@ export class TicketQueueComponent implements OnInit {
   error$: Observable<string | null>;
   userRole$: Observable<string | null>;
 
+  isModalOpen = false
+
+  sidebarOpen = false; // Start closed on mobile
+  isMobile = false;
+
   filters: TicketFilters = {
     status: '',
     priority: '',
@@ -51,11 +56,40 @@ export class TicketQueueComponent implements OnInit {
     this.loading$ = this.store.select(selectLoading);
     this.error$ = this.store.select(selectError);
     this.userRole$ = this.store.select(state => state.auth.role);
+
+    // Initialize mobile detection
+    this.checkMobile();
+    this.sidebarOpen = !this.isMobile;
+
+    // Add resize listener
+    window.addEventListener('resize', () => this.checkMobile());
+  }
+
+  private checkMobile(): void {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.innerWidth < 1024;
+
+    // Close sidebar automatically on mobile
+    if (!wasMobile && this.isMobile) {
+      this.sidebarOpen = false;
+    }
+    // Open sidebar automatically on desktop
+    if (wasMobile && !this.isMobile) {
+      this.sidebarOpen = true;
+    }
   }
 
   ngOnInit(): void {
     this.loadTickets();
+    this.checkMobile();
   }
+
+  // Sidebar toggle method
+  toggleSidebar(): void {
+    console.log('Toggling sidebar'); // Debug log
+    this.sidebarOpen = !this.sidebarOpen;
+  }
+
 
   loadTickets(): void {
     this.store.dispatch(loadAssignedTickets());
@@ -70,6 +104,7 @@ export class TicketQueueComponent implements OnInit {
       size: 10
     }));
   }
+
 
   getFilteredTickets(tickets: TicketResponse[], status: string): TicketResponse[] {
     return tickets.filter(ticket => ticket.status === status);

@@ -1,9 +1,37 @@
-<div class="flex min-h-screen bg-slate-50">
+<div class="flex h-screen overflow-hidden bg-slate-100">
+  <!-- Sidebar Backdrop -->
+  <div
+    *ngIf="sidebarOpen && isMobile"
+    class="fixed inset-0 bg-black/50 z-20 transition-opacity"
+    (click)="toggleSidebar()"
+  ></div>
+
   <!-- Sidebar Component -->
-  <app-sidebar [userRole$]="userRole$"></app-sidebar>
+  <aside
+    class="fixed lg:static w-64 h-full z-30 transform transition-transform duration-300 ease-in-out bg-white border-r border-gray-200 shadow-lg"
+    [ngClass]="{
+      'translate-x-0': sidebarOpen,
+      '-translate-x-full': !sidebarOpen && isMobile,
+      'lg:translate-x-0': true
+    }"
+  >
+    <app-sidebar [userRole$]="userRole$"></app-sidebar>
+  </aside>
 
   <!-- Main Content -->
-  <div class="flex-1 ml-64 p-6">
+  <main class="flex-1 overflow-auto bg-gray-50">
+    <!-- Mobile Toggle Button -->
+    <button
+      (click)="toggleSidebar()"
+      class="fixed bottom-4 right-4 lg:hidden z-40 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
+    >
+      <svg *ngIf="!sidebarOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+      <svg *ngIf="sidebarOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
     <div class="p-6">
       <div class="mb-8">
         <h1 class="text-2xl font-bold text-slate-800">User Management</h1>
@@ -93,6 +121,5 @@
         </div>
       </div>
     </div>
-  </div>
-
+  </main>
 </div>

@@ -7,12 +7,12 @@ import {PerformanceMetrics} from "../../../shared/models/performance-metrics.mod
 import {AdminActions} from "../store/admin.actions"
 import {AuthState} from "../../auth/store/auth.reducer"
 import {SidebarComponent} from "../../../shared/components/sidebar/sidebar.component"
-import {AsyncPipe, DecimalPipe, NgIf} from "@angular/common"
+import {AsyncPipe, DecimalPipe, NgClass, NgIf} from "@angular/common"
 
 @Component({
   selector: "app-statistics",
   standalone: true,
-  imports: [SidebarComponent, AsyncPipe, NgIf, DecimalPipe],
+  imports: [SidebarComponent, AsyncPipe, NgIf, DecimalPipe, NgClass],
   templateUrl: "./statistics.component.html",
   styleUrl: "./statistics.component.css",
 })
@@ -27,6 +27,11 @@ export class StatisticsComponent implements OnInit, AfterViewInit, OnDestroy {
   loading$: Observable<boolean>
   error$: Observable<string | null>
   userRole$: Observable<string | null>
+
+  isModalOpen = false
+
+  sidebarOpen = false; // Start closed on mobile
+  isMobile = false;
 
   ticketStatusChart: Chart | null = null
   ticketAssignmentChart: Chart | null = null
@@ -72,10 +77,35 @@ export class StatisticsComponent implements OnInit, AfterViewInit, OnDestroy {
     this.loading$ = this.store.select(selectLoading)
     this.error$ = this.store.select(selectError)
     this.userRole$ = this.store.select((state) => state.auth.role)
+    this.checkMobile();
+    this.sidebarOpen = !this.isMobile;
+
+    // Add resize listener
+    window.addEventListener('resize', () => this.checkMobile());
+  }
+
+  private checkMobile(): void {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.innerWidth < 1024;
+
+    // Close sidebar automatically on mobile
+    if (!wasMobile && this.isMobile) {
+      this.sidebarOpen = false;
+    }
+    // Open sidebar automatically on desktop
+    if (wasMobile && !this.isMobile) {
+      this.sidebarOpen = true;
+    }
   }
 
   ngOnInit(): void {
     this.loadMetrics()
+    this.checkMobile();
+  }
+  // Sidebar toggle method
+  toggleSidebar(): void {
+    console.log('Toggling sidebar'); // Debug log
+    this.sidebarOpen = !this.sidebarOpen;
   }
 
   ngAfterViewInit(): void {
