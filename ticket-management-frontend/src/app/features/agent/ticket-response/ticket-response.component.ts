@@ -29,6 +29,11 @@ export class TicketResponseComponent implements OnInit {
   newComment = ""
   ticketId: number | null = null
 
+  isModalOpen = false
+
+  sidebarOpen = false; // Start closed on mobile
+  isMobile = false;
+
   // Define available statuses for tickets
   availableStatuses: TicketStatus[] = ["OPEN", "IN_PROGRESS", "RESOLVED", "NOT_RESOLVED", "CLOSED"]
   constructor(
@@ -38,6 +43,27 @@ export class TicketResponseComponent implements OnInit {
     this.loading$ = this.store.select(selectLoading)
     this.error$ = this.store.select(selectError)
     this.userRole$ = this.store.select((state) => state.auth.role)
+
+    // Initialize mobile detection
+    this.checkMobile();
+    this.sidebarOpen = !this.isMobile;
+
+    // Add resize listener
+    window.addEventListener('resize', () => this.checkMobile());
+  }
+
+  private checkMobile(): void {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.innerWidth < 1024;
+
+    // Close sidebar automatically on mobile
+    if (!wasMobile && this.isMobile) {
+      this.sidebarOpen = false;
+    }
+    // Open sidebar automatically on desktop
+    if (wasMobile && !this.isMobile) {
+      this.sidebarOpen = true;
+    }
   }
 
   ngOnInit(): void {
@@ -53,27 +79,30 @@ export class TicketResponseComponent implements OnInit {
         .select(selectTickets)
         .pipe(map((tickets) => tickets.find((ticket) => ticket.id === this.ticketId)))
     }
+    this.checkMobile();
+  }
+  // Sidebar toggle method
+  toggleSidebar(): void {
+    console.log('Toggling sidebar'); // Debug log
+    this.sidebarOpen = !this.sidebarOpen;
   }
 
   // Check if a status is available for the current ticket status
   isStatusAvailable(currentStatus: string, targetStatus: string): boolean {
     if (currentStatus === "NEW") {
-      return ["OPEN", "IN_PROGRESS", "RESOLVED"].includes(targetStatus)
+      return ["OPEN", "IN_PROGRESS"].includes(targetStatus)
     } else if (currentStatus === "OPEN") {
-      return ["IN_PROGRESS", "RESOLVED"].includes(targetStatus)
-    } else if (currentStatus === "IN_PROGRESS") {
-      return ["RESOLVED", "NOT_RESOLVED"].includes(targetStatus)
-    } else if (currentStatus === "NOT_RESOLVED") {
       return ["IN_PROGRESS"].includes(targetStatus)
+    } else if (currentStatus === "IN_PROGRESS") {
+      return ["OPEN"].includes(targetStatus)
     } else if (currentStatus === "RESOLVED") {
       return ["CLOSED"].includes(targetStatus)
     }
     return false
   }
 
-  // Helper method to determine if comments can be added
+
   canAddComment(status: string): boolean {
-    // If status is CLOSED, no comments allowed
     if (status === "CLOSED") {
       return false
     }

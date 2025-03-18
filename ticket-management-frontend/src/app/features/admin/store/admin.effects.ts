@@ -19,6 +19,18 @@ export class AdminEffects {
     )
   );
 
+  loadUnassignedTickets$ = createEffect(() =>
+    this.actions$.pipe(
+      ofType(AdminActions.loadUnassignedTickets),
+      switchMap(({ page, size }) =>
+        this.adminService.getUnassignedTickets(page, size).pipe(
+          map(unassignedTickets => AdminActions.loadUnassignedTicketsSuccess({ unassignedTickets })),
+          catchError(error => of(AdminActions.loadUnassignedTicketsFailure({ error: error.message })))
+        )
+      )
+    )
+  );
+
   loadAgentTickets$ = createEffect(() =>
     this.actions$.pipe(
       ofType(AdminActions.loadAgentTickets),
@@ -81,32 +93,8 @@ export class AdminEffects {
     )
   );
 
-  // Ticket assignment
-  // In admin.effects.ts
-  loadUnassignedTickets$ = createEffect(() =>
-    this.actions$.pipe(
-      ofType(AdminActions.loadUnassignedTickets),
-      switchMap(() =>
-        this.adminService.getUnassignedTickets().pipe(
-          map(tickets => {
-            // Transform the response to match the Page interface
-            const pageResponse = {
-              content: tickets, // The API already returns an array of tickets
-              totalElements: tickets.length,
-              totalPages: 1,
-              size: tickets.length,
-              number: 0,
-              last: true
-            };
-            return AdminActions.loadUnassignedTicketsSuccess({ tickets: pageResponse });
-          }),
-          catchError(error => of(AdminActions.loadUnassignedTicketsFailure({
-            error: error.message || 'Failed to load unassigned tickets'
-          })))
-        )
-      )
-    )
-  );
+  // Ticket unassignment
+
 
 
   updateUserStatus$ = createEffect(() =>

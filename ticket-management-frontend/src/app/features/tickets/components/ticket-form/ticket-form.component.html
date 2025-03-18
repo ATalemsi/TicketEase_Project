@@ -1,129 +1,154 @@
-<div class="flex min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
-  <app-sidebar></app-sidebar>
+<div class="flex h-screen overflow-hidden bg-gray-50">
+  <!-- Sidebar Backdrop -->
+  <div
+    *ngIf="sidebarOpen && isMobile"
+    class="fixed inset-0 bg-black/50 z-20 transition-opacity"
+    (click)="toggleSidebar()"
+  ></div>
 
-  <div class="flex-1 ml-64 p-6 flex flex-col">
+  <!-- Sidebar -->
+  <aside
+    class="fixed lg:static w-64 h-full z-30 transform transition-transform duration-300 ease-in-out bg-white border-r border-gray-200 shadow-lg"
+    [ngClass]="{
+      'translate-x-0': sidebarOpen,
+      '-translate-x-full': !sidebarOpen && isMobile,
+      'lg:translate-x-0': true
+    }"
+  >
+    <app-sidebar [userRole$]="userRole$"></app-sidebar>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-auto bg-gray-50">
+    <!-- Mobile Toggle Button -->
+    <button
+      (click)="toggleSidebar()"
+      class="fixed bottom-4 right-4 lg:hidden z-40 p-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition-colors"
+    >
+      <svg *ngIf="!sidebarOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+      <svg *ngIf="sidebarOpen" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+      </svg>
+    </button>
+
     <!-- Header -->
-    <div class="mb-6 flex justify-between items-center">
-      <div>
-        <h1 class="text-2xl font-bold text-slate-800">
-          {{ mode === 'create' ? 'Create New Ticket' : 'Update Ticket' }}
-        </h1>
-        <p class="text-sm text-slate-500 mt-1">
-          {{ mode === 'create' ? 'Submit a new support request' : 'Modify your existing ticket' }}
-        </p>
+    <div class="p-4 sm:p-6 lg:p-8">
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+        <div>
+          <h1 class="text-xl sm:text-2xl font-bold text-gray-900">
+            {{ mode === 'create' ? 'Create New Ticket' : 'Update Ticket' }}
+          </h1>
+          <p class="text-xs sm:text-sm text-gray-500 mt-1">
+            {{ mode === 'create' ? 'Submit a new support request' : 'Modify your existing ticket' }}
+          </p>
+        </div>
+        <button
+          (click)="router.navigate(['/client/dashboard'])"
+          class="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-800 bg-white rounded-lg shadow-sm border border-gray-200 hover:border-gray-300 transition-all duration-200 mt-4 sm:mt-0"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
+               stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+               class="mr-2">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+          Back to Dashboard
+        </button>
       </div>
-      <button
-        (click)="router.navigate(['/client/dashboard'])"
-        class="flex items-center px-4 py-2 text-sm text-slate-600 hover:text-slate-800 bg-white rounded-lg shadow-sm border border-slate-200 hover:border-slate-300 transition-all duration-200"
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none"
-             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-             class="mr-2">
-          <line x1="19" y1="12" x2="5" y2="12"></line>
-          <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        Back to Dashboard
-      </button>
-    </div>
 
-    <!-- Form card -->
-    <div class="bg-white rounded-xl shadow-md p-6 border border-slate-200 flex-grow overflow-auto">
-      <form [formGroup]="ticketForm" (ngSubmit)="onSubmit()" class="space-y-4">
-        <!-- Title field -->
-        <div>
-          <label for="title" class="block text-sm font-medium text-slate-700 mb-1">
-            Title <span *ngIf="mode === 'create'" class="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            id="title"
-            formControlName="title"
-            [class.border-red-500]="submitted && f['title'].errors"
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-            placeholder="Enter ticket title"
-          />
-          <p *ngIf="submitted && f['title'].errors" class="mt-1 text-xs text-red-500">
-            {{ getFieldError('title') }}
+      <!-- Form Card -->
+      <div class="bg-white rounded-xl shadow-md p-4 sm:p-6 border border-gray-200">
+        <!-- Display message if the user cannot create a ticket -->
+        <div *ngIf="!canCreateTicket" class="bg-red-50 border border-red-200 p-3 sm:p-4 rounded-lg mb-4">
+          <p class="text-xs sm:text-sm text-red-700">
+            You have {{ newTicketCount }} unresolved tickets. Please resolve some tickets before creating a new one.
           </p>
         </div>
 
-        <!-- Description field -->
-        <div>
-          <label for="description" class="block text-sm font-medium text-slate-700 mb-1">
-            Description <span *ngIf="mode === 'create'" class="text-red-500">*</span>
-          </label>
-          <textarea
-            id="description"
-            formControlName="description"
-            [class.border-red-500]="submitted && f['description'].errors"
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-            rows="3"
-            placeholder="Enter ticket description"
-          ></textarea>
-          <p *ngIf="submitted && f['description'].errors" class="mt-1 text-xs text-red-500">
-            {{ getFieldError('description') }}
-          </p>
-        </div>
-
-        <!-- Priority field -->
-        <div>
-          <label for="priority" class="block text-sm font-medium text-slate-700 mb-1">
-            Priority <span *ngIf="mode === 'create'" class="text-red-500">*</span>
-          </label>
-          <select
-            id="priority"
-            formControlName="priority"
-            [class.border-red-500]="submitted && f['priority'].errors"
-            class="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent transition-colors"
-          >
-            <option value="">Select Priority</option>
-            <option *ngFor="let option of priorityOptions" [value]="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-          <p *ngIf="submitted && f['priority'].errors" class="mt-1 text-xs text-red-500">
-            {{ getFieldError('priority') }}
-          </p>
-        </div>
-
-        <!-- Priority explanation -->
-        <div class="grid grid-cols-3 gap-2 text-xs">
-          <div class="p-2 bg-yellow-50 border border-yellow-100 rounded-lg">
-            <span class="font-medium text-yellow-800">Low:</span> General questions
+        <form [formGroup]="ticketForm" (ngSubmit)="onSubmit()" class="space-y-4">
+          <!-- Title Field -->
+          <div>
+            <label for="title" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              Title <span *ngIf="mode === 'create'" class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              id="title"
+              formControlName="title"
+              [class.border-red-500]="submitted && f['title'].errors"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-xs sm:text-sm"
+              placeholder="Enter ticket title"
+              [disabled]="!canCreateTicket"
+            />
+            <p *ngIf="submitted && f['title'].errors" class="mt-1 text-xs text-red-500">
+              {{ getFieldError('title') }}
+            </p>
           </div>
-          <div class="p-2 bg-orange-50 border border-orange-100 rounded-lg">
-            <span class="font-medium text-orange-800">Medium:</span> Minor issues
-          </div>
-          <div class="p-2 bg-red-50 border border-red-100 rounded-lg">
-            <span class="font-medium text-red-800">High:</span> Critical problems
-          </div>
-        </div>
 
-        <!-- Submit button -->
-        <div class="flex justify-end pt-4">
-          <button
-            type="submit"
-            [disabled]="loading$ | async"
-            class="flex items-center px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <ng-container *ngIf="loading$ | async; else submitText">
-              <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Processing...
-            </ng-container>
-            <ng-template #submitText>
-              {{ mode === 'create' ? 'Create' : 'Update' }} Ticket
-            </ng-template>
-          </button>
-        </div>
-      </form>
+          <!-- Description Field -->
+          <div>
+            <label for="description" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              Description <span *ngIf="mode === 'create'" class="text-red-500">*</span>
+            </label>
+            <textarea
+              id="description"
+              formControlName="description"
+              [class.border-red-500]="submitted && f['description'].errors"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-xs sm:text-sm"
+              rows="3"
+              placeholder="Enter ticket description"
+              [disabled]="!canCreateTicket"
+            ></textarea>
+            <p *ngIf="submitted && f['description'].errors" class="mt-1 text-xs text-red-500">
+              {{ getFieldError('description') }}
+            </p>
+          </div>
+
+          <!-- Priority Field -->
+          <div>
+            <label for="priority" class="block text-xs sm:text-sm font-medium text-gray-700 mb-1">
+              Priority <span *ngIf="mode === 'create'" class="text-red-500">*</span>
+            </label>
+            <select
+              id="priority"
+              formControlName="priority"
+              [class.border-red-500]="submitted && f['priority'].errors"
+              class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-colors text-xs sm:text-sm"
+              [disabled]="!canCreateTicket"
+            >
+              <option value="">Select Priority</option>
+              <option *ngFor="let option of priorityOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+            <p *ngIf="submitted && f['priority'].errors" class="mt-1 text-xs text-red-500">
+              {{ getFieldError('priority') }}
+            </p>
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex justify-end pt-4">
+            <button
+              type="submit"
+              [disabled]="(loading$ | async) || !canCreateTicket"
+              class="flex items-center px-4 sm:px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed text-xs sm:text-sm"
+            >
+              <ng-container *ngIf="loading$ | async; else submitText">
+                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Processing...
+              </ng-container>
+              <ng-template #submitText>
+                {{ mode === 'create' ? 'Create' : 'Update' }} Ticket
+              </ng-template>
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-
-    <!-- Help text -->
-    <div class="mt-4 text-sm text-slate-500">
-      Need help? Contact support at <a href="mailto:support&#64;example.com" class="text-primary-600 hover:underline">support&#64;example.com</a>
-    </div>
-  </div>
+  </main>
 </div>

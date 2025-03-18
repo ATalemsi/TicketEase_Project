@@ -4,13 +4,12 @@ import { Store } from '@ngrx/store';
 import { map, take } from 'rxjs/operators';
 import { AuthState } from '../../features/auth/store/auth.reducer';
 import { Observable } from 'rxjs';
-import { JwtHelperService } from '@auth0/angular-jwt'; // Import JwtHelperService
 
 @Injectable({
   providedIn: 'root',
 })
 export class AuthGuard implements CanActivate {
-  private readonly jwtHelper = new JwtHelperService(); // Create an instance of JwtHelperService
+   // Create an instance of JwtHelperService
 
   constructor(
     private readonly store: Store<{ auth: AuthState }>,

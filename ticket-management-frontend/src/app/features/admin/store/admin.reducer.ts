@@ -47,6 +47,23 @@ export const adminReducer = createReducer(
     loading: false,
   })),
 
+  // Load unassigned tickets
+  on(AdminActions.loadUnassignedTickets, (state) => ({
+    ...state,
+    loading: true,
+    error: null
+  })),
+  on(AdminActions.loadUnassignedTicketsSuccess,  (state, { unassignedTickets }) => ({
+    ...state,
+    unassignedTickets: { ...unassignedTickets, data: Array.isArray(unassignedTickets.content) ? unassignedTickets.content : [unassignedTickets.content] },
+    loading: false,
+  })),
+  on(AdminActions.loadUnassignedTicketsFailure, (state, { error }) => ({
+    ...state,
+    error,
+    loading: false
+  })),
+
   // Load agent tickets
   on(AdminActions.loadAgentTickets, (state) => ({
     ...state,
@@ -115,23 +132,7 @@ export const adminReducer = createReducer(
     loading: false
   })),
 
-  // Load unassigned tickets
-  on(AdminActions.loadUnassignedTickets, (state) => ({
-    ...state,
-    loading: true,
-    error: null
-  })),
-  on(AdminActions.loadUnassignedTicketsSuccess,  (state, { tickets }) => ({
-    ...state,
-    unassignedTickets: { ...tickets, content: Array.isArray(tickets.content) ? tickets.content : [tickets.content] },
-    loading: false,
-  })),
 
-  on(AdminActions.loadUnassignedTicketsFailure, (state, { error }) => ({
-    ...state,
-    error,
-    loading: false
-  })),
 
   // Update user status
   on(AdminActions.updateUserStatus, (state) => ({

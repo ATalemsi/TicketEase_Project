@@ -1,0 +1,49 @@
+/* Custom styles for the statistics component */
+:host {
+  display: block;
+}
+
+/* Add smooth transitions for hover effects */
+.transition-all {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Custom chart tooltip styling */
+.chartjs-tooltip {
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  padding: 0.5rem;
+  font-size: 0.875rem;
+  color: #1f2937;
+}
+
+/* Progress bar animations */
+@keyframes progress {
+  0% {
+    width: 0;
+  }
+}
+
+.bg-blue-600,
+.bg-yellow-500,
+.bg-indigo-600,
+.bg-slate-500,
+.bg-green-600,
+.bg-red-600 {
+  animation: progress 1s ease-in-out;
+}
+
+/* Responsive adjustments for small screens */
+@media (max-width: 640px) {
+  .text-3xl {
+    font-size: 1.5rem;
+  }
+
+  .w-14,
+  .h-14 {
+    width: 3rem;
+    height: 3rem;
+  }
+}
+

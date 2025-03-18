@@ -23,6 +23,14 @@ export class AdminServiceService {
     return this.http.get<Page<TicketResponse>>(`${this.apiUrl}/tickets`, { params });
   }
 
+  // Ticket unassignment
+  getUnassignedTickets(page: number, size: number): Observable<Page<TicketResponse>> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    return this.http.get<Page<TicketResponse>>(`${this.apiUrl}/tickets/unassigned`, { params });
+  }
+
   getTicketsByAgent(agentId: number, page: number, size: number): Observable<Page<TicketResponse>> {
     const params = new HttpParams()
       .set('page', page.toString())
@@ -46,10 +54,7 @@ export class AdminServiceService {
     );
   }
 
-  // Ticket assignment
-  getUnassignedTickets(): Observable<TicketResponse[]> {
-    return this.http.get<TicketResponse[]>(`${this.apiUrl}/tickets/unassigned`);
-  }
+
 
   getAllUsers(): Observable<User[]> {
     return this.http.get<User[]>(`${this.apiUrl}/users`);

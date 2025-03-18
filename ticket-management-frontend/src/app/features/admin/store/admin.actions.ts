@@ -10,6 +10,11 @@ export const AdminActions = createActionGroup({
     'Load Tickets Success': props<{ tickets: Page<TicketResponse> }>(),
     'Load Tickets Failure': props<{ error: string }>(),
 
+    // Ticket unassignment
+    'Load Unassigned Tickets': props<{ page: number; size: number }>(),
+    'Load Unassigned Tickets Success': props<{ unassignedTickets: Page<TicketResponse> }>(),
+    'Load Unassigned Tickets Failure': props<{ error: string }>(),
+
 
     'Update User Status': props<{ userId: number, active: boolean }>(),
     'Update User Status Success': props<{ user: User }>(),
@@ -34,10 +39,7 @@ export const AdminActions = createActionGroup({
 
 
 
-    // Ticket unassignment
-    'Load Unassigned Tickets': emptyProps(),
-    'Load Unassigned Tickets Success': props<{ tickets: Page<TicketResponse> }>(),
-    'Load Unassigned Tickets Failure': props<{ error: string }>(),
+
 
     // Assign ticket to agent
     'Assign Ticket': props<{ ticketId: number; agentId: number }>(),

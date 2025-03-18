@@ -1,0 +1,12 @@
+2025-03-12 13:25:42 - INFO  [main] - c.t.m.t.TicketManagementBackendApplicationTests - Starting TicketManagementBackendApplicationTests using Java 17.0.12 with PID 34584 (started by moham in C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend)
+2025-03-12 13:25:42 - INFO  [main] - c.t.m.t.TicketManagementBackendApplicationTests - The following 1 profile is active: "dev"
+2025-03-12 13:26:24 - INFO  [main] - c.t.m.t.TicketServiceTest - Starting TicketServiceTest using Java 17.0.10 with PID 28824 (started by moham in C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend)
+2025-03-12 13:26:24 - INFO  [main] - c.t.m.t.TicketServiceTest - The following 1 profile is active: "dev"
+2025-03-12 13:29:04 - INFO  [main] - c.t.m.t.TicketServiceTest - Starting TicketServiceTest using Java 17.0.10 with PID 33812 (started by moham in C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend)
+2025-03-12 13:29:04 - INFO  [main] - c.t.m.t.TicketServiceTest - The following 1 profile is active: "dev"
+2025-03-12 13:29:46 - INFO  [main] - c.t.m.t.TicketServiceTest - Starting TicketServiceTest using Java 17.0.10 with PID 35556 (started by moham in C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend)
+2025-03-12 13:29:46 - INFO  [main] - c.t.m.t.TicketServiceTest - The following 1 profile is active: "dev"
+2025-03-12 13:31:49 - INFO  [main] - c.t.m.t.TicketServiceTest - Starting TicketServiceTest using Java 17.0.10 with PID 35120 (started by moham in C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend)
+2025-03-12 13:31:49 - INFO  [main] - c.t.m.t.TicketServiceTest - The following 1 profile is active: "dev"
+2025-03-12 13:32:49 - INFO  [main] - c.t.m.t.TicketManagementBackendApplicationTests - Starting TicketManagementBackendApplicationTests using Java 17.0.12 with PID 35732 (started by moham in C:\Users\moham\IdeaProjects\ticket-management\ticket-management-backend)
+2025-03-12 13:32:49 - INFO  [main] - c.t.m.t.TicketManagementBackendApplicationTests - The following 1 profile is active: "dev"

@@ -1,6 +1,7 @@
 package com.ticket.management.ticket_management_backend.service;
 
 import com.ticket.management.ticket_management_backend.dto.request.TicketCreateRequest;
+import com.ticket.management.ticket_management_backend.dto.response.PerformanceMetricsResponse;
 import com.ticket.management.ticket_management_backend.dto.response.TicketResponse;
 import com.ticket.management.ticket_management_backend.dto.update.TicketStatusUpdateRequest;
 import com.ticket.management.ticket_management_backend.dto.update.TicketUpdateRequest;
@@ -34,4 +35,8 @@ public interface TicketService {
     TicketResponse assignTicketToAgent(Long ticketId, Long agentId);
 
     Page<TicketResponse> getUnassignedTickets(Pageable pageable);
+
+    PerformanceMetricsResponse calculatePerformanceMetrics();
+
+    boolean deleteTicketIfNew(Long id);
 }

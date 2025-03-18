@@ -85,4 +85,42 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("error", e.getMessage()));
         }
     }
+
+    // Finally, add the endpoint to the TicketController
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteTicket(@PathVariable Long id,
+                                          @AuthenticationPrincipal UserPrincipal userPrincipal) {
+        try {
+            log.info("Delete request for ticket ID: {} by user ID: {}", id, userPrincipal.getId());
+
+            // Verify the ticket belongs to the current user
+            TicketResponse ticket = ticketService.getTicketById(id);
+            if (!ticket.getCreator().getId().equals(userPrincipal.getId())) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(Map.of("error", "You can only delete your own tickets"));
+            }
+
+            boolean deleted = ticketService.deleteTicketIfNew(id);
+
+            if (deleted) {
+                return ResponseEntity.ok(Map.of(
+                        "success", true,
+                        "message", "Ticket deleted successfully"
+                ));
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body(Map.of(
+                                "success", false,
+                                "message", "Ticket could not be deleted because it is not in NEW status"
+                        ));
+            }
+        } catch (ResourceNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", e.getMessage()));
+        } catch (Exception e) {
+            log.error("Error deleting ticket: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("error", "An unexpected error occurred: " + e.getMessage()));
+        }
+    }
 }

@@ -66,4 +66,13 @@ export class TicketService {
     return this.http.put<TicketResponse>(url, {status});
   }
 
+  /**
+   * Deletes a ticket if its status is NEW
+   * @param ticketId The ID of the ticket to delete
+   * @returns Observable containing the response with success status and message
+   */
+  deleteTicket(ticketId: number): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/user/tickets/${ticketId}`);
+  }
+
 }

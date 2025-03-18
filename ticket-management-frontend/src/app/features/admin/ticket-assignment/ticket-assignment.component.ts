@@ -41,7 +41,7 @@ interface AppState {
   styleUrl: './ticket-assignment.component.css'
 })
 export class TicketAssignmentComponent implements OnInit , OnDestroy {
-  tickets$: Observable<Page<TicketResponse> | null> | undefined;
+  unassignedTickets$: Observable<Page<TicketResponse> | null> | undefined;
   agents$: Observable<User[] | null>;
   loading$: Observable<boolean>;
   error$: Observable<string | null>;
@@ -49,14 +49,23 @@ export class TicketAssignmentComponent implements OnInit , OnDestroy {
 
   private readonly subscriptions: Subscription[] = [];
 
+  currentPage = 0;
+  pageSize = 10;
+
   assignmentForm: FormGroup;
   notificationMessage: string | null = null;
+
+  isModalOpen = false
+
+  sidebarOpen = false; // Start closed on mobile
+  isMobile = false;
 
   constructor(
     private readonly store: Store<AppState>,
     private readonly fb: FormBuilder,
 
   ) {
+    this.unassignedTickets$ = this.store.select(selectUnassignedTickets);
     this.agents$ = this.store.select(selectAgents);
     this.loading$ = this.store.select(selectLoading);
     this.error$ = this.store.select(selectError);
@@ -66,27 +75,60 @@ export class TicketAssignmentComponent implements OnInit , OnDestroy {
       ticketId: ['', Validators.required],
       agentId: ['', Validators.required]
     });
+    this.checkMobile();
+    this.sidebarOpen = !this.isMobile;
+
+    // Add resize listener
+    window.addEventListener('resize', () => this.checkMobile());
+  }
+
+  private checkMobile(): void {
+    const wasMobile = this.isMobile;
+    this.isMobile = window.innerWidth < 1024;
+
+    // Close sidebar automatically on mobile
+    if (!wasMobile && this.isMobile) {
+      this.sidebarOpen = false;
+    }
+    // Open sidebar automatically on desktop
+    if (wasMobile && !this.isMobile) {
+      this.sidebarOpen = true;
+    }
   }
 
   ngOnInit(): void {
 
     this.loadUnassignedTickets();
     this.loadData();
+
+    this.checkMobile();
+  }
+  // Sidebar toggle method
+  toggleSidebar(): void {
+    console.log('Toggling sidebar'); // Debug log
+    this.sidebarOpen = !this.sidebarOpen;
   }
 
   ngOnDestroy(): void {
     // Clean up all subscriptions
     this.subscriptions.forEach(sub => sub.unsubscribe());
+    window.removeEventListener('resize', () => this.checkMobile());
   }
 
   loadData(): void {
     this.notificationMessage = null;
-    this.store.dispatch(AdminActions.loadUnassignedTickets());
+    this.store.dispatch(AdminActions.loadUnassignedTickets({
+      page: this.currentPage,
+      size: this.pageSize
+    }));
     this.store.dispatch(AdminActions.loadAgents());
   }
 
   loadUnassignedTickets(): void {
-    this.store.dispatch(AdminActions.loadUnassignedTickets());
+    this.store.dispatch(AdminActions.loadUnassignedTickets({
+      page: this.currentPage,
+      size: this.pageSize
+    }));
   }
 
   onAssignTicket(): void {

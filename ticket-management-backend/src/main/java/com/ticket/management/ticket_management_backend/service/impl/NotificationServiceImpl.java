@@ -25,27 +25,33 @@ public class NotificationServiceImpl implements NotificationService {
 
         String userDestination = "/user/" + userId.toString() + "/queue/tickets";
         log.info("Envoi direct à la destination {}", userDestination);
-        //messagingTemplate.convertAndSend(userDestination, notification);
         messagingTemplate.convertAndSend("/topic/tickets/" + userId, notification);
 
         log.info("Notifications envoyées");
     }
 
     @Override
-    public void notifyTicketAssigned(Ticket ticket) {
-        messagingTemplate.convertAndSendToUser(
-                ticket.getAssignedAgent().getId().toString(),
-                "/queue/notifications",
-                new NotificationMessage("You have been assigned to ticket: " + ticket.getTitle())
+    public void notifyTicketAssigned(Ticket ticket , Long userId) {
+        NotificationMessage notification =new NotificationMessage("You have been assigned to ticket: " + ticket.getTitle());
+
+        String userDestination = "/user/" + userId.toString() + "/queue/tickets";
+        log.info("Envoi direct à la destination assigned {}", userDestination);
+        messagingTemplate.convertAndSend("/topic/assigned/" + userId, notification);
+    }
+
+    @Override
+    public void notifyTicketUpdate(Ticket ticket ,Long userId) {
+        messagingTemplate.convertAndSend(
+                "/topic/tickets/" + userId,
+                new NotificationMessage("Ticket updated status: " + ticket.getTitle())
         );
     }
 
     @Override
-    public void notifyTicketUpdate(Ticket ticket) {
+    public void notifyTicketAddComment(Ticket ticket ,Long userId) {
         messagingTemplate.convertAndSend(
-                "/topic/tickets/" + ticket.getId(),
-                new NotificationMessage("Ticket updated: " + ticket.getTitle())
+                "/topic/tickets/" + userId,
+                new NotificationMessage("Ticket Add Comment: " + ticket.getTitle())
         );
-
     }
 }

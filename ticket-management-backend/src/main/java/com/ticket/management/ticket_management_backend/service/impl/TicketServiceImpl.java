@@ -1,6 +1,7 @@
 package com.ticket.management.ticket_management_backend.service.impl;
 
 import com.ticket.management.ticket_management_backend.dto.request.TicketCreateRequest;
+import com.ticket.management.ticket_management_backend.dto.response.PerformanceMetricsResponse;
 import com.ticket.management.ticket_management_backend.dto.response.TicketResponse;
 import com.ticket.management.ticket_management_backend.dto.update.TicketStatusUpdateRequest;
 import com.ticket.management.ticket_management_backend.dto.update.TicketUpdateRequest;
@@ -24,6 +25,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -46,8 +49,9 @@ public class TicketServiceImpl implements TicketService {
         this.ticketRepository = ticketRepository;
         this.notificationService = notificationService;
         this.ticketMapper = ticketMapper;
-        this.userRepository=userRepository;
+        this.userRepository = userRepository;
     }
+
     @Override
     @Transactional
     public TicketResponse createTicket(TicketCreateRequest request, User creator) {
@@ -57,7 +61,6 @@ public class TicketServiceImpl implements TicketService {
 
         Ticket savedTicket = ticketRepository.save(ticket);
         notificationService.notifyNewTicket(savedTicket, creator.getId());
-
 
 
         if (savedTicket.getAssignedAgent() != null) {
@@ -79,7 +82,7 @@ public class TicketServiceImpl implements TicketService {
             User agent = userRepository.findById(request.getAssignedAgentId())
                     .orElseThrow(() -> new ResourceNotFoundException("Assigned agent not found"));
             ticket.setAssignedAgent(agent);
-            notificationService.notifyTicketAssigned(ticket);
+            notificationService.notifyTicketAssigned(ticket , agent.getId());
         }
         Ticket updatedTicket = ticketRepository.save(ticket);
         return ticketMapper.toResponse(updatedTicket);
@@ -115,15 +118,15 @@ public class TicketServiceImpl implements TicketService {
             ticket.setStatus(request.getStatus());
 
 
-             if(request.getStatus().equals("RESOLVED")){
-                 ticket.setResolvedAt(java.time.LocalDateTime.now());
-             }
+            if (request.getStatus().equals("RESOLVED")) {
+                ticket.setResolvedAt(java.time.LocalDateTime.now());
+            }
 
             Ticket updatedTicket = ticketRepository.save(ticket);
             log.info("Ticket status updated successfully: {}", updatedTicket);
 
 
-             notificationService.notifyTicketUpdate(updatedTicket);
+            notificationService.notifyTicketUpdate(updatedTicket , updatedTicket.getCreator().getId());
 
             return ticketMapper.toResponse(updatedTicket);
         } catch (Exception e) {
@@ -173,7 +176,7 @@ public class TicketServiceImpl implements TicketService {
         Ticket updatedTicket = ticketRepository.save(ticket);
 
         // Notify the customer about the new comment
-        notificationService.notifyTicketUpdate(updatedTicket);
+        notificationService.notifyTicketAddComment(updatedTicket, updatedTicket.getCreator().getId());
 
         return ticketMapper.toResponse(updatedTicket);
     }
@@ -271,7 +274,7 @@ public class TicketServiceImpl implements TicketService {
             Ticket updatedTicket = ticketRepository.save(ticket);
 
             // Notify the agent about the assignment
-            notificationService.notifyTicketAssigned(updatedTicket);
+            notificationService.notifyTicketAssigned(updatedTicket, agent.getId());
 
             log.info("Ticket assigned successfully to agent: {}", agent.getEmail());
 
@@ -287,4 +290,66 @@ public class TicketServiceImpl implements TicketService {
         Page<Ticket> tickets = ticketRepository.findByAssignedAgentIsNull(pageable);
         return tickets.map(ticketMapper::toResponse);
     }
+
+    @Override
+    public PerformanceMetricsResponse calculatePerformanceMetrics() {
+        List<Ticket> allTickets = ticketRepository.findAll();
+
+        int totalTickets = allTickets.size();
+        int resolvedTickets = (int) allTickets.stream()
+                .filter(ticket -> ticket.getStatus() == Status.RESOLVED)
+                .count();
+        int unresolvedTickets = (int) allTickets.stream()
+                .filter(ticket -> ticket.getStatus() != Status.NOT_RESOLVED)
+                .count();
+        int newTickets = (int) allTickets.stream()
+                .filter(ticket -> ticket.getStatus() == Status.NEW)
+                .count();
+        int inProgressTickets = (int) allTickets.stream()
+                .filter(ticket -> ticket.getStatus() == Status.IN_PROGRESS)
+                .count();
+        int ticketsAssignedToAgents = (int) allTickets.stream()
+                .filter(ticket -> ticket.getAssignedAgent() != null)
+                .count();
+        int ticketsUnassigned = (int) allTickets.stream()
+                .filter(ticket -> ticket.getAssignedAgent() == null)
+                .count();
+
+        // Calculate average resolution time (in hours)
+        double averageResolutionTime = allTickets.stream()
+                .filter(ticket -> ticket.getStatus() == Status.RESOLVED)
+                .mapToLong(ticket -> Duration.between(ticket.getCreatedAt(), ticket.getUpdatedAt()).toHours())
+                .average()
+                .orElse(0);
+
+        return new PerformanceMetricsResponse(
+                totalTickets,
+                resolvedTickets,
+                unresolvedTickets,
+                newTickets,
+                inProgressTickets,
+                averageResolutionTime,
+                ticketsAssignedToAgents,
+                ticketsUnassigned
+        );
+    }
+
+    @Override
+    public boolean deleteTicketIfNew(Long id) {
+        log.info("Attempting to delete ticket with ID: {}", id);
+
+        Ticket ticket = ticketRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Ticket not found with ID: " + id));
+
+        // Check if the ticket status is NEW
+        if (ticket.getStatus() == Status.NEW) {
+            log.info("Deleting ticket with ID: {} as it has NEW status", id);
+            ticketRepository.delete(ticket);
+            return true;
+        } else {
+            log.info("Cannot delete ticket with ID: {} as its status is not NEW but {}", id, ticket.getStatus());
+            return false;
+        }
+    }
 }
+
