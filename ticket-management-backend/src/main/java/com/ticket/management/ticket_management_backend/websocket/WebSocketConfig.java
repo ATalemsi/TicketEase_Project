@@ -27,14 +27,14 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureMessageBroker(MessageBrokerRegistry config) {
         config.enableSimpleBroker("/topic", "/queue");
         config.setApplicationDestinationPrefixes("/app");
-        // Enable user-specific destinations
+
     }
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*") // Use only this for flexible origin matching
-                .withSockJS(); // Enable SockJS fallback
+                .setAllowedOriginPatterns("*")
+                .withSockJS();
     }
 
     @Override
