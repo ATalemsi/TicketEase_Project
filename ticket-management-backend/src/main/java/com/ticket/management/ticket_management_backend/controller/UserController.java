@@ -27,6 +27,4 @@ public class UserController {
     public ResponseEntity<List<UserSummaryResponse>> getAllAgents() {
         return ResponseEntity.ok(userService.getAllAgents());
     }
-
-
 }
