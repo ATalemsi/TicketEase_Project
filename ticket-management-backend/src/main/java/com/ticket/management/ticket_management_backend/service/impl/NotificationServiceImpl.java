@@ -21,10 +21,10 @@ public class NotificationServiceImpl implements NotificationService {
     public void notifyNewTicket(Ticket ticket, Long userId) {
         NotificationMessage notification = new NotificationMessage("New ticket created: " + ticket.getTitle());
 
-        log.info("Contenu de la notification: {}", notification);
+        //log.info("Contenu de la notification: {}", notification);
 
         String userDestination = "/user/" + userId.toString() + "/queue/tickets";
-        log.info("Envoi direct à la destination {}", userDestination);
+        //log.info("Envoi direct à la destination {}", userDestination);
         messagingTemplate.convertAndSend("/topic/tickets/" + userId, notification);
 
         log.info("Notifications envoyées");
@@ -35,7 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
         NotificationMessage notification =new NotificationMessage("You have been assigned to ticket: " + ticket.getTitle());
 
         String userDestination = "/user/" + userId.toString() + "/queue/tickets";
-        log.info("Envoi direct à la destination assigned {}", userDestination);
+        //log.info("Envoi direct à la destination assigned {}", userDestination);
         messagingTemplate.convertAndSend("/topic/assigned/" + userId, notification);
     }
 
