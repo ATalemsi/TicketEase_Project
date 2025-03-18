@@ -300,7 +300,7 @@ public class TicketServiceImpl implements TicketService {
                 .filter(ticket -> ticket.getStatus() == Status.RESOLVED)
                 .count();
         int unresolvedTickets = (int) allTickets.stream()
-                .filter(ticket -> ticket.getStatus() != Status.NOT_RESOLVED)
+                .filter(ticket -> ticket.getStatus() == Status.NOT_RESOLVED)
                 .count();
         int newTickets = (int) allTickets.stream()
                 .filter(ticket -> ticket.getStatus() == Status.NEW)
