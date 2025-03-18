@@ -47,7 +47,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                     String userId = accessor.getFirstNativeHeader("user-id");
                     if (userId != null) {
                         accessor.setUser(new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList()));
-                        log.info("Set user ID for WebSocket session: {}", userId);
+                        log.info("Set user ID for WebSocket session is : {}", userId);
                     } else {
                         log.info("No user-id header provided in WebSocket connection");
                     }
